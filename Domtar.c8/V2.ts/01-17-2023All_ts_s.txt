@@ -1,0 +1,3521 @@
+Transport Structure Table No 1 Name: Dispatcher
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								
+2		Nop	-								
+3	Tru	Nop	-								
+4	Txt	Nop	-								
+5		Sindex	-			&OIndex					Get order index
+6		Sgetrig	-			&Local1	&Local2				Get order trigger
+7		P_==	False	Start		Local1	3				Check if ACI trigged the order (3 = ACI)
+8		GP_==	True	Start		0	2				Check if host is enabled
+9		Tx_t	Always	CanReq		504	OIndex				Send event and end order.
+10		Nop	-								
+11	Start	P_set	-			&Source	0				Parameter Initialyze
+12		P_set	-			&ECode	0				"
+13		P_set	-			&Dewrpd	0				
+14		P_set	-			&Modify	0				
+15		P_valid	True	S1		&Phase					**** Dispath TS ****
+16		P_set	-			&Phase	1				Start
+17	S1	P_valid	True	S2		&IKey					
+18		P_set	-			&IKey	0				
+19	S2	P_valid	True	S3		&AGVID					
+20		P_set	-			&AGVID	0				
+21	S3	Nop	-								
+22	Disp	Nop	-								=== DISPATCH PHASE ===
+23		Nop	-								
+24	Ph01	P_==	False	Ph02	Disp	Phase	1				Phase: 1 Order starting - TS10 Host Sync
+25		P_set	-			&Param1	5000				
+26		P_set	Always	StRun	Disp	&Local4	10				
+27	Ph02	P_==	False	Ph03	Disp	Phase	2				Phase: 2 TS 11 Parameter check
+28		P_set	Always	StRun	Disp	&Local4	11				
+29	Ph03	P_==	False	Ph04	Disp	Phase	3				Phase: 3 TS 20, Move to load
+30		P_set	Always	StRun	Disp	&Local4	20				
+31	Ph04	P_==	False	Ph05	Disp	Phase	4				Phase: 4 Host Synch Prior to Load (TS10)
+32		P_set	-			&Param1	5000				
+33		P_set	Always	StRun	Disp	&Local4	10				
+34	Ph05	P_==	False	Ph06	Disp	Phase	5				Phase: 5 TS 21 Do the Load
+35		P_set	Always	StRun	Disp	&Local4	21				
+36	Ph06	P_==	False	Ph07	Disp	Phase	6				Phase: 6 Host Synch After Load (TS10)
+37		P_set	-			&Param1	5000				
+38		P_set	Always	StRun	Disp	&Local4	10				
+39	PH07	P_==	False	Ph08	Disp	Phase	7				Phase: 7 TS 22 Move to Seq Chec
+40		P_set	-			&Param1	0				  Indicate its a pre-dewrap check
+41		P_set	Always	StRun	Disp	&Local4	22				
+42	PH08	P_==	False	Ph09	Disp	Phase	8				Phase: 8 TS 24 Perform Dewrap (if needed)
+43		P_set	Always	StRun	Disp	&Local4	23				
+44	PH09	P_==	False	Ph10	Disp	Phase	9				Phase:9 TS 22 Move to Seq Chec
+45		P_set	-			&Param1	1				  Indicate its a post-dewrap check
+46		P_set	Always	StRun	Disp	&Local4	22				
+47	Ph10	P_==	False	Ph11	Disp	Phase	10				Phase 10: TS 30 Moving to unload
+48		P_set	Always	StRun	Disp	&Local4	30				
+49	Ph11	P_==	False	Ph12	Disp	PHASE	11				Phase 11: Host Sync Prior to Unload (TS10)
+50		P_set	-			&Param1	5000				
+51		P_set	Always	StRun	Disp	&Local4	10				Only use 4 for this update in BStone
+52	Ph12	P_==	False	Ph13	Disp	PHASE	12				Phase 12: TS 31 Unloading
+53		P_set	Always	StRun	Disp	&Local4	31				
+54	Ph13	P_==	False	Ph14	Disp	Phase	13				Phase 13: Host Sync After Unload (TS10)
+55		P_set	-			&Param1	5000				
+56		P_set	Always	StRun	Disp	&Local4	10				
+57	Ph14	P_==	False	Ph77	Disp	Phase	14				Phase 14: TS 12 Order finish - 
+58		P_set	Always	StRun	Disp	&Local4	12				
+59	Ph77	P_==	False	Ph88	Disp	Phase	77				Phase 77: TS17 Redirect Action
+60		P_set	Always	StRun	Disp	&Local4	17				
+61	Ph88	P_==	False	Ph30	Disp	Phase	88				Phase 88: TS14 Modify Action
+62		P_set	Always	StRun	Disp	&Local4	14				
+63	Ph30	P_==	False	Ph99	Disp	Phase	30				Phase 30: TS 16 Cancel request
+64		P_set	Always	StRun	Disp	&Local4	16				
+65	Ph99	P_==	False	ErrLop	Disp	PHASE	99				Phase: END
+66		Nop	Always	0	0						
+67		Nop	-								
+68	StRun	Scall	Always	Disp	ErrLop	Local4					=== Evaluate State function
+69		Nop	-								
+70	ErrLop	Tx_t	-			605	OIndex				Send event and end order.
+71	End	Nop	Always	0							
+72	CanReq	P_set	Always	Disp		&Phase	30				Set cancel request
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 2 Name: Show battery level
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Battery level
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								********************************************************
+2		Nop	-								    DISPLAY BATTERY LEVEL ON THE VEHICLES IN CWAY
+3		Nop	-								********************************************************
+4		Nop	-								
+5		Nop	-								
+6	Start	Nop	-								
+7		P_set	-			&for	1				Start at vehicle 1
+8		Nop	-								
+9	Loop	SimGet	-			for	5	&Bat			Read the battery level from the simulator.
+10		COstat	-			for	$FFF	$FFF	$FFF	Bat	Set the value in CWay to the battery level.
+11		P_+	-			&for	1				Check next vehicle.
+12		P_==	True	Start		for	11				If over the max number of vehicles, start over.
+13		Sdelay	Always	Loop		10					
+
+
+External parameters from Parameter Area named : Battery level
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	p0	Trigger	0	0	Yes	No	Yes	No	
+1	p1	Trigger	0	0	Yes	No	Yes	No	
+2	p2	Trigger	0	0	Yes	No	Yes	No	
+3	p3	Trigger	0	0	Yes	No	Yes	No	
+4	p4	Trigger	0	0	Yes	No	Yes	No	
+5	p5	Trigger	0	0	Yes	No	Yes	No	
+6		Trigger	0	0	Yes	No	Yes	No	
+7		Trigger	0	0	Yes	No	Yes	No	
+8		Trigger	0	0	Yes	No	Yes	No	
+9		Trigger	0	0	Yes	No	Yes	No	
+10	CID	Trigger	0	0	Yes	No	Yes	No	
+11	for	Trigger	0	0	Yes	No	Yes	No	
+12	Bat	Trigger	0	0	Yes	No	Yes	No	
+13		Trigger	0	0	Yes	No	Yes	No	
+14		Trigger	0	0	Yes	No	Yes	No	
+15		Trigger	0	0	Yes	No	Yes	No	
+16		Trigger	0	0	Yes	No	Yes	No	
+17		Trigger	0	0	Yes	No	Yes	No	
+18		Trigger	0	0	Yes	No	Yes	No	
+19		Trigger	0	0	Yes	No	Yes	No	
+20		Trigger	0	0	Yes	No	Yes	No	
+21		Trigger	0	0	Yes	No	Yes	No	
+22		Trigger	0	0	Yes	No	Yes	No	
+23		Trigger	0	0	Yes	No	Yes	No	
+24		Trigger	0	0	Yes	No	Yes	No	
+25		Trigger	0	0	Yes	No	Yes	No	
+26		Trigger	0	0	Yes	No	Yes	No	
+27		Trigger	0	0	Yes	No	Yes	No	
+28		Trigger	0	0	Yes	No	Yes	No	
+29		Trigger	0	0	Yes	No	Yes	No	
+30		Trigger	0	0	Yes	No	Yes	No	
+31		Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 3 Name: FireDoor Change
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   FireDoor Monitor
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*************************
+2		Nop	-								*   Process a change to FireDoor IO
+3		Nop	-								*********************
+4		Nop	-								
+5		P_set	-			&Local4	0				Use Local4 to only show Event Msg once
+6	Start	P_set	-			&Ctr	1				
+7		P_set	-			&Rechk	0				
+8		P_conv	False	IntErr		10	99	&Local1			Table entry 99 contains total num agvs
+9		P_set	Always	Check		&NumAGV	Local1				
+10	IntErr	P_set	-			&NumAGV	20				
+11	Check	Ipoll	False	Fire		2	5	1			
+12		Tx_t	-			5173					
+13		P_set	Always	Loop		&Enable	0				
+14	Fire	P_set	-			&Enable	1				
+15		P_==	True	Loop		Local4	1				Skip Event Msg if Local4 set
+16		Tx_t	-			5172					
+17		P_set	-			&Local4	1				Set Local4 so no more Event Msg
+18	Loop	P_>	True	Done		Ctr	NumAGV				
+19		P_conv	False	Cont		10	Ctr	&Local1			Local 1 will contain the AGV ID
+20		P_==	False	DoHalt		Enable	0				
+21		Nop	Always	Cont	Cont						
+22	DoHalt	CposLay	-		Cont	&AckSeg	&AckPnt	&CurSeg	&Local3	Local1	Check AGV segment
+23		P_conv	False	DoHlt	Cont	8	CurSeg	&Local3			Set Rechk variable if on segment
+24		P_set	Always	Cont		&Rechk	1				Skip Halt
+25	DoHlt	CHalt	-		Cont	Local1					
+26	Cont	P_eread	-			&Error					
+27		P_+	Always	Loop		&Ctr	1				
+28	Done	P_==	False	Start		Rechk	0				
+29		Nop	Always	0							
+
+
+External parameters from Parameter Area named : FireDoor Monitor
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6		Trigger	0	0	Yes	No	Yes	No	
+7		Trigger	0	0	Yes	No	Yes	No	
+8		Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13		Trigger	0	0	Yes	No	Yes	No	
+14		Trigger	0	0	Yes	No	Yes	No	
+15	Error	Trigger	0	0	Yes	No	Yes	No	
+16		Trigger	0	0	Yes	No	Yes	No	
+17		Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	AckSeg	Trigger	0	0	Yes	No	Yes	No	
+20	AckPnt	Trigger	0	0	Yes	No	Yes	No	
+21	CurSeg	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25		Trigger	0	0	Yes	No	Yes	No	
+26		Trigger	0	0	Yes	No	Yes	No	
+27	Rechk	Trigger	0	0	Yes	No	Yes	No	
+28	CurSt	Trigger	0	0	Yes	No	Yes	No	
+29		Trigger	0	0	Yes	No	Yes	No	
+30		Trigger	0	0	Yes	No	Yes	No	
+31		Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 4 Name: IOCheckBeforeDrop
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								Check Station Enabled IO before dropping
+3		Nop	-								============
+4		P_conv	False	Done		13	StnID	&Line			
+5	IOChk	Ctst_O	False	Call10		$800					If blocked by IO, test if Station disabled
+6		P_==	False	Modfy		Modify	0				
+7		Ipoll	True	Wait		Line	Unit	ID			Check if Station disabled
+8		P_>	True	Wait		Cntr	0				Skip updating host if all ready done once
+9		P_set	-			&Param1	5040				Set Magic1
+10		P_set	-			&Param2	StnID				Set Magic2
+11		Scall	-			110					Update Host with Blocked message
+12		P_+	Always	Wait		&Cntr	1				Increase counter
+13	Wait	Sdelay	Always	IOChk		4					
+14	Call10	P_set	-			&Param1	5000				
+15		Scall	Always	0		10					TS10 updates Phase so just exit
+16	Done	P_+	Always	0		&Phase	1				Continue in Next Phase
+17	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+18	Modfy	P_set	Always	0		&Phase	88				Dont update, call Modify
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 10 Name: Update Host With Sync
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*******************************************************
+2		Nop	-								* Host Sync for continue                               
+3		Nop	-								*  Param1 is msg type 
+4		Nop	-								*   Param2 and 3 passed in or set to 0
+5		Nop	-								*******************************************************
+6		P_==	True	Phase		Param1	5000				If Param1 = 5000, Phase Event
+7		P_set	Always	Stn		&Param3	IKey				If not Phase update, set Param3 to IKey
+8	Phase	P_+	-			&Param1	Phase				
+9	Stn	P_valid	True	Action		&StnID					
+10		P_set	-			&StnID	0				
+11	Action	P_valid	True	KPI		&Action					
+12		P_set	-			&Action	0				
+13	KPI	Tx_OKPI	-		Host	Param1	StnID	Action			Store time of phase change in KPI data base.
+14		Nop	-								
+15	Host	GP_==	False	Done		0	2				Check if HOST is active
+16		Sgetrig	-			&Local1	&Local2				
+17		P_==	True	Done		Local1	4				If trigger is Cway then no communicaion with host
+18		Nop	-								Param2 is passed in...
+19	Send	P_inval	-			&H_Ack					Make sure param2 and 3 are valid
+20		Scall	False	ErrHan	ErrHan	110					Send to Host
+21		P_set	-			&Cntr	0				Clear temporary counter
+22	Ack	P_valid	True	AckChk		&H_Ack					Wait for Ack from HOST
+23		P_+	-			&Cntr	1				Increase Temporary counter
+24		P_==	True	Send		Cntr	13				If one minut elapsed then resend host message
+25		Sdelay	Always	Ack		20	$0004				Wait 5 sec or until new local parameter value
+26	AckChk	P_==	True	Done		H_Ack	Param1				Check Host answer
+27		P_==	True	Cancel		H_Ack	98				Cancel ?
+28		P_==	True	Redir		H_Ack	88				Redirect ?
+29		Sdelay	Always	Send		2					Wrong answer resend message
+30	Done	P_+	Always	0		&Phase	1				Set next state
+31		Nop	-								
+32	ONack	Tx_t	-			505	OIndex	0			Send Ikey Not OK
+33		P_set	Always	0		&Phase	99				Terminate order
+34	Redir	P_set	Always	0		&Phase	88				Change Phase to redirect - 88
+35	Cancel	P_set	Always	0		&Phase	30				Change Phase to Cancel - 30
+36	ErrHan	Nop	Always	Send							If send error Send again
+37	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+38		Nop	-								
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 11 Name: Parameter Check
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1	Start	Nop	-								===========================<<< Order Parameter Check >>
+2	F_Chk	P_valid	False	P_Nak		&DestA					DestA valid check
+3	D_Chk	P_valid	False	P_Nak		&DestB					DestB valid check
+4		P_valid	False	P_Nak		&IKey					
+5		P_valid	False	P_Nak		&Seqnc					
+6	D_ok	Nop	-								
+7		Sgetrig	-			&Local1	&Local2				
+8		P_==	True	Cway		Local1	4				
+9		Tx_t	Always	NextPh		5300	OIndex	DestA	DestB	IKey	Create Event msg
+10		Nop	-								
+11	Cway	Tx_t	-			5103	DestA	DestB	OIndex		Create Event msg
+12		Nop	-								
+13	NextPh	P_+	Always	0		&Phase	1				Next Phase
+14		Nop	-								===================<<< parameter NG or order cancel >>>
+15	P_Nak	P_set	-			&Param1	5000				
+16		P_set	-			&Param2	1				
+17		Scall	False	Error2	Error2	10					Report bad params to host, Phase will be updat
+18		Nop	Always	0							
+19	Error2	Nop	Always	Start							Message not send, check again
+20	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+21		Nop	-								
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 12 Name: Order termination
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*******************************************************
+2		Nop	-								* Transport order termination                          
+3		Nop	-								*******************************************************
+4		Cid	-		Cont	&AGVID					
+5		P_set	-			&Param1	2				Clear OMPLC Values
+6		Scall	-		Crel	15					Reset OM_plc
+7	Crem	Ctst_A	False	Crel		$0001					Check if vehicle still loaded
+8		Crem	-		Crel						If vehicle loaded cancel carrier to start carwash
+9	Crel	Crel	-		Cont						Release vehicle
+10	Cont	Tx_t	-			5301	OIndex	AGVID	IKey		Event "Order Complete"
+11		P_set	-			&Param1	5000				
+12		Scall	-			10					Host Sync
+13	NextSt	P_set	Always	0		&Phase	99				Return true
+14		Nop	-								
+15	Cancel	P_set	Always	0		&Phase	99				Just terminate
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 13 Name: Start Order From Pick IO
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Order Parameters
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*******************
+2		Nop	-								***  Start the order based on an IO
+3		Nop	-								***********************
+4		Nop	-								Very long check to determine the drop
+5		P_conv	-		EDone	2	Pick	&PKLine			Gets Line,Unit,ID Complete IO and #Dest IOs to check
+6		P_set	-			&Local1	10				10 is the starting PConv Table 
+7		P_set	-			&Local2	10				
+8		P_+	-			&Local2	NumDst				Local2 now holds the end value to check 
+9	A	P_>=	True	Error		Local1	Local2				Have we hit max dest checks
+10		P_conv	-		Error	Local1	Pick	&DsLine			Get the IO information
+11		Ipoll	False	NextIO		DsLine	DsUnit	DsID			If the IO is on, use the related Dest Stn
+12		P_set	Always	Start		&Drop	DsStn				
+13	NextIO	P_+	Always	A		&Local1	1				
+14	Start	P_set	-			&Rate	0				Clear the sim rate, will be filled in later
+15		Scall	-			10					This needs, pick, drop and IO to turn on when complete
+16		Nop	-								
+17	Finish	Nop	Always	0							
+18	Error	Nop	-	0							Give Cway an IO error
+19		Irel	-								
+20		Ron	-			PKLine	PKUnit	PKID			
+21		Tx_t	Always	0		50	Pick	0			
+22	EDone	Tx_t	Always	0		50	Pick	1			Give Cway an IO error
+
+
+External parameters from Parameter Area named : Order Parameters
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	__LP00	Trigger	0	0	Yes	No	Yes	No	
+1	Pick	Trigger	0	0	Yes	No	Yes	No	
+2	Drop	Trigger	0	0	Yes	No	Yes	No	
+3		Trigger	0	0	Yes	No	Yes	No	
+4		Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	Time	Trigger	0	0	Yes	No	Yes	No	
+8	Stn	Trigger	0	0	Yes	No	Yes	No	
+9		Trigger	0	0	Yes	No	Yes	No	
+10	Line	Trigger	0	0	Yes	No	Yes	No	
+11	Unit	Trigger	0	0	Yes	No	Yes	No	
+12	ID	Trigger	0	0	Yes	No	Yes	No	
+13	Index	Trigger	0	0	Yes	No	Yes	No	
+14	AGVID	Trigger	0	0	Yes	No	Yes	No	
+15	SOURCE	Trigger	0	0	Yes	No	Yes	No	
+16	ECODE	Trigger	0	0	Yes	No	Yes	No	
+17	RESULT	Trigger	0	0	Yes	No	Yes	No	
+18	Local1	Trigger	0	0	Yes	No	Yes	No	
+19	Local2	Trigger	0	0	Yes	No	Yes	No	
+20	Delay	Trigger	0	0	Yes	No	Yes	No	
+21	Rate	Trigger	0	0	Yes	No	Yes	No	
+22	PKLine	Trigger	0	0	Yes	No	Yes	No	
+23	PKUnit	Trigger	0	0	Yes	No	Yes	No	
+24	PKID	Trigger	0	0	Yes	No	Yes	No	
+25	NumDst	Trigger	0	0	Yes	No	Yes	No	
+26	DsLine	Trigger	0	0	Yes	No	Yes	No	
+27	DsUnit	Trigger	0	0	Yes	No	Yes	No	
+28	DsID	Trigger	0	0	Yes	No	Yes	No	
+29	DSStn	Trigger	0	0	Yes	No	Yes	No	
+30	Local3	Trigger	0	0	Yes	No	Yes	No	
+31	RetVal	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 14 Name: Modify TS
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*******************************************************
+2		Nop	-								* Redirect TS                                          
+3		Nop	-								*******************************************************
+4		Sgetrig	-			&Local1	&Local2				If trigger is Cway then send message to Cway
+5		P_==	True	Cway		Local1	4				
+6		P_set	-			&Modify	0				
+7	Cont	P_set	-			&Param1	5000				
+8		Scall	False	CanReq		10					
+9	Cway	Ctst_A	True	Loaded		$001					
+10		P_set	Always	0		&Phase	3				
+11	Loaded	P_set	-			&Param1	1				Write the new values to OMPLC
+12		Scall	-			15					Write the new values to OMPLC
+13		P_==	False	Dwpd		Dewrpd	0				
+14		P_set	Always	0		&Phase	7				
+15	Dwpd	P_set	Always	0		&Phase	9				
+16	CanReq	P_set	Always	0		&PHASE	30				Set cancel request
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 15 Name: OM_PLC Read/Write
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1	START	Cid	False	ERROR	ERROR	&AGVID					This TS send IKEY,Phase,Fetch and Deliver to vehicle
+2		P_==	True	Read		Param1	3				If Param1 = 3 then read the Values
+3		P_==	True	Reset		Param1	2				If Param1 =2 then clear/reset the values
+4		P_==	True	ALL		Param1	1				If Param1 =1 then write the values
+5	All	Cplcwr	False	RETRY	ERROR	AGVID	OIndex	9	Phase	10	
+6		Cplcwr	False	RETRY	ERROR	AGVID	DestA	23	DestB	24	
+7		Cplcwr	False	RETRY	ERROR	AGVID	StnID	13	Ikey	14	
+8		Cplcwr	False	RETRY	ERROR	AGVID	Dewrpd	15			
+9		Nop	Always	END							
+10	Reset	Cplcwr	False	RETRY	ERROR	AGVID	0	9	0	10	Clear the values
+11		Cplcwr	False	RETRY	ERROR	AGVID	0	23	0	24	
+12		Cplcwr	False	RETRY	ERROR	AGVID	0	13	0	14	
+13		Cplcwr	False	RETRY	ERROR	AGVID	0	15			
+14		Nop	Always	END							
+15	RETRY	Nop	Always	START							
+16	END	P_set	Always	0		&Local1	1				Return true if OK
+17	Error	P_eread	Always			&ECode					Clear the error
+18		P_set	Always	0		&Local1	0				Return false if error
+19		Nop	-								
+20	Cancel	P_set	Always	0		&Phase	30				Set cancel phase
+21		Nop	-								
+22	Read	Cplcrd	False	RETRY	ERROR	AGVID	&OIndex	9	&PHASE	10	Read Ikey and Phase for maybe active order
+23		Cplcrd	False	RETRY	ERROR	AGVID	&DestA	23	&DestB	24	Read Fetch and Deliver for maybe active order
+24		Cplcrd	False	RETRY	ERROR	AGVID	&StnID	13	&IKey	14	
+25		Cplcrd	False	RETRY	ERROR	AGVID	&Dewrpd	15			
+26		Nop	Always	End							
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 16 Name: Cancel request
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								************************************************
+2		Nop	-								Cancel request to host
+3		Nop	-								************************************************
+4		Tx_t	-			5151	OIndex	AGVID			Add event
+5	Start	Sgetrig	-			&Local1	&Local2				Check trigger
+6		P_==	False	Cancel		Local1	3				Only acknowledge if host started the order.
+7		P_set	-			&Param1	5000				
+8		Scall	-			10					
+9	Cancel	P_set	-			&Param1	2				Set to clear OMPLC data
+10		Scall	-			15					
+11		Ctst_A	False	Crel	Crel	$0001					Check if vehicle still loaded
+12		Crem	-		Crel						If vehicle loaded cancel carrier to start carwash
+13	Crel	P_set	Always	0		&Phase	99				Set cancel phase
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 17 Name: Redirect TS
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cncl
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								Redirect to Point - Phase 77
+3		Nop	-								Used to move blocking carrier out
+4		Nop	-								of the way of a blocked station or Rescue vehicle
+5		Nop	-								Moves vehicle to Point in table then
+6		Nop	-								switches back to old Phase to complete order
+7		Nop	-								============
+8	Abrt	Cabort	-								Abort current command
+9	Chk	Sdelay	-		Abrt	4					Delay to give Abort command time to finish
+10		Carr	False	Chk	Abrt						
+11		P_conv	False	Cncl	Cncl	24	Value	&Local3			Check if segment is in table
+12	MV_1	CmvPn_C	-		MVERR1	Local3	0				Move to Point 33
+13	TEST1	CmvQ	True	M_OK1	MVERR1	&Source	&Ecode	&Result			Check if vehicle allocate entry segment
+14		Sdelay	Always	TEST1		10	$000B				Wait 5 sec or until Vehicle information
+15	MVERR1	P_eread	-			&Ecode					
+16		P_==	True	Chk		Ecode	$C9				
+17		Scall	True	MV_1		120					If error check returns true, then retry Carrier move.
+18		P_set	Always	StPhs		&Local1	1				If error check returns false, then return to dispatcher
+19	M_OK1	P_set	Always	Cncl	StPhs	&Phase	Param4				Set Phase to what it was before Redirect
+20	StPhs	Nop	-								
+21	Cncl	Nop	Always	0							End
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 20 Name: Move to Fetch TS 
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Move to pickup station. -- Phase 3
+3		Nop	-								**************************************************
+4		P_set	-			&StnID	DestA				
+5	MV_1	CmvEn_C	-		MVERR1	StnID					move to entry position
+6		Cid	-			&AGVID					Get Vehicle ID
+7		P_set	-			&Param1	5003				Param1 = 5000 + Phase
+8		P_set	-			&Param2	AGVID				Send Vehicle Connected to Host
+9		Scall	-			110					Send _s-message
+10		P_set	-			&Param1	0				Indicate to write the OMPLC
+11		Scall	-			15					Send Order information with OM-PLC to vehicle
+12	TEST1	P_==	False	Modify		Modify	0				
+13	MV_2	CmvQ	True	M_OK1	MVERR1	&Source	&Ecode	&Result			Check if vehicle allocate entry segment
+14		Sdelay	Always	TEST1		10	$000B				Wait 5 sec or until Vehicle information
+15	MVERR1	Scall	True	MV_1		120					If error check returns true, then retry Carrier move.
+16		P_set	Always	0		&Local1	1				If error check returns false, then return to dispatcher
+17		Nop	-								
+18	M_OK1	Ctst_O	False	MV1_OK		$0001					Check if carrier is unloaded.
+19		P_set	-			&Param1	0				
+20		P_set	-			&Phase	10				To clear Omplc information
+21		Scall	-			15					Reset Omplc information
+22		Crem	-								Remove Carrier so the load is handled by Carwash
+23		Crel	-								Release Carrier from order
+24		Sdelay	-			2					
+25		P_set	-			&Phase	3				Set Phase 3 and repeat it.
+26		Nop	Always	MV_1							Do the movemebnt agian to allocate other vehicle
+27	MV1_OK	P_conv	False	Done		13	StnID	&Line			Don't continue with next phase
+28	IOChk	P_==	False	Modify		Modify	0				   if there is an IO wait
+29		Ipoll	True	IOOn		Line	Unit	ID			Wait for IO to be set correctly
+30		P_==	True	Done		Value	0				  or do a redirect
+31		Nop	Always	Wait							
+32	IOOn	P_==	True	Done		Value	1				
+33	Wait	Sdelay	Always	IOChk		4					
+34		Nop	-								
+35	Done	P_+	Always	0		&Phase	1				Continue with Next Phase
+36	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+37	Modify	P_set	Always	0		&Phase	88				
+38	Rdrct	Cabort	-								
+39		P_set	Always	0		&Phase	77				Dont update, call Redirect
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 21 Name: Fetch TS 
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Loading at pickup station.                     *
+3		Nop	-								**************************************************
+4		P_set	-			&cntr	0				
+5	MV_1	CmvSt_C	-		ERRTS1	StnID	1				Loading
+6		P_set	-			&Param1	1				
+7		Scall	-			15					Send Orderinformation via OMPLC to vehicle
+8	TEST1	P_==	False	Redir		Modify	0				
+9		CmvQ	True	M_OK1	ERRTS1	&Source	&ECode	&Result			Check if move is finished.
+10		Sdelay	Always	TEST1		10	$000B				
+11	MVERR1	Ctst_A	False	ERRTS1	ERRTS1	$0001					Check if carrier is loaded.
+12		P_eread	Always	M_OK1		&Local1					
+13	ERRTS1	Scall	False	CanPic		120					Find out what kind of error.
+14		Ctst_A	True	M_OK1	ERRTS1	$0001					Check if Carrier is loaded
+15		Nop	Always	CanPic							If not loaded, cancel order
+16	M_OK1	P_+	-			&Phase	1				Continue in next Phase
+17		Tx_t	Always	0		542	DestA	AGVID	OIndex		
+18	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+19	Redir	P_set	Always	0		&Phase	88				
+20	CanPic	P_set	-			&Param1	4031				
+21		P_set	-			&Param2	StnID				
+22	Abrt	Cabort	-								Abort current operation
+23	Chk	Carr	True	Updt	Abrt						Check if operation is aborted
+24		P_+	-		Abrt	&cntr	1				Increment counter
+25		P_==	True	Updt	Abrt	cntr	10				Exit after 10 seconds if abort doesn't complete
+26		Sdelay	Always	Chk	Abrt	2					Delay to give Abort command time to finish
+27	Updt	Scall	Always	CanReq		110					Update Host
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 22 Name: Sequence Check 
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**********************
+2		Nop	-								**   Check the station params
+3		Nop	-								**   To see if there is a Sequence Check 
+4		Nop	-								**    Location
+5		Nop	-								** !! Input Param1 = 0, pre-dewrap
+6		P_set	-			&Action	Param1				**    Input Param1 = 1, post dewrap
+7		Nop	-								*********************************
+8	Loop	P_conv	False	Done	CanReq	1	DestB	&Local1			This call will fill Local 1 - 4
+9		Nop	-								   Local1 = predewrap sequence check station
+10		Nop	-								   Local2 = needs dewrap (T/F)
+11		Nop	-								   Local3 = Post dewrap sequence check point
+12		Nop	-								   Local4 = Loop point
+13		P_==	False	Post		Action	0				
+14		P_==	True	Done		Local1	0				Local1 = Prewrap sequence check station
+15		Nop	Always	MvChk							
+16	Post	P_==	True	Done		Local3	0				Local3 = Postwrap sequence check point
+17		CmvPn_C	Always	Post1	MVERR1	Local3	0				Move to Postwrap point
+18	MvChk	CmvEn_C	False	MVERR1	MVERR1	Local1		$08			Move to station entry
+19	Post1	Sdelay	-			2					
+20	TEST1	CmvQ	True	MV_OK1	MVERR1	&Source	&Ecode	&Result			
+21		P_==	False	Redir		Modify	0				Check if redirect is sent from host.
+22		Sdelay	Always	TEST1		10	$000B				
+23	MVERR1	Scall	True	MV_OK1		120					If error check returns true, then retry Carrier move.
+24		P_set	Always	0		&Local1	1				If error check returns false, then return to dispatcher
+25	MV_OK1	P_==	True	Done		Seqnc	0				 If Seqnc = 0, no sequence check...
+26		P_conv	False	Done	CanReq	2	DestB	&Line			This gets Line, Unit, ID, and NumIOs
+27		Ibin	-			Line	Unit	&Result	ID	Value	
+28		P_>=	True	SqPass		Result	Seqnc				
+29		Tx_OKPI	-		C1	Phase	AGVID	Seqnc			Store Loop Event
+30	C1	P_set	-			&Param1	5020				
+31		P_set	-			&Param2	AGVID				
+32		Scall	-			110					Update the host that we are looping 
+33		P_set	-			&Param1	1				
+34		Scall	-			60					Change AGV to indicate looping
+35		P_conv	False	Done	CanReq	1	DestB	&Local1			Reread the table to get the Local params
+36		CmvPn_C	False	MVERR1	MVERR2	Local4	0				Local4 is the loop point
+37		Sdelay	-			2					
+38	TEST2	CmvQ	True	MV_OK2	MVERR2	&Source	&Ecode	&Result			
+39		P_==	False	Redir		Modify	0				Check if redirect is sent from host.
+40		Sdelay	Always	TEST2		10	$000B				
+41	MVERR2	Scall	True	MV_OK2		120					If error check returns true, then retry Carrier move.
+42		P_set	Always	0		&Local1	1				If error check returns false, then return to dispatcher
+43	MV_OK2	Nop	Always	Loop							
+44		Nop	-								
+45	SqPass	P_set	-			&Param1	5021				
+46		Scall	-			110					Update the host that Seq Check passed
+47		P_set	-			&Param1	0				
+48		Scall	-			60					Restore AGV appearance
+49	Done	P_+	Always	0		&Phase	1				
+50		Nop	-								
+51		Nop	-								
+52		Nop	-								
+53	CanReq	P_set	Always	0		&Phase	30				
+54		Nop	-								
+55	Redir	P_set	Always	0		&Phase	88				
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 23 Name: Dewrap
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Perform Dewrap if needed                     *
+3		Nop	-								**************************************************
+4		Nop	-								This call will fill Local 1 - 4
+5		Nop	-								   Local1 = Dewrap Station Number
+6		Nop	-								   Local2 = Dewrap Wait Point (not used in this TS)
+7		Nop	-								============
+8		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+9	Dewrap	P_set	-			&Param2	1				
+10		Scall	-			110					Update host that moving to dewrap
+11	MV_1	P_conv	False	Done	CanReq	26	DestB	&Local1			Check if going to a Dewrap Station
+12		CmvSt_C	-		ERRTS1	Local1	10	400			Local2 has free station number, drop load
+13		P_set	-			&Param1	1				
+14		Scall	-			15					Send Orderinformation via OMPLC to vehicle
+15	TEST1	CmvQ	True	RdPLC	ERRTS1	&Source	&ECode	&Result			Check if move is finished.
+16		Sdelay	Always	TEST1		10	$000B				
+17	ERRTS1	Scall	False	0		120					Find out what kind of error.
+18		Nop	Always	MV_1							
+19	RdPLC	Ctst_A	False	M_OK1		$0080					Read PLC bit 7, goes low when button is pressed
+20		GP_==	False	dly1		1000	1				Check if AGV is simulated. GP1000=1 is simulated
+21		P_+	-			&Cntr	1				Increment Counter
+22		P_==	False	dly1		Cntr	5				Stop after 5 iteration, simulation only
+23		SimSet	-		ClrErr	AGVID	2	8	$0080		Set PLC 7 to OFF, simulation only
+24	dly1	Sdelay	Always	RdPLC		4					
+25	M_OK1	P_set	-			&Param2	2				
+26		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+27		Scall	Always	Done		110					
+28	Done	P_set	-			&Dewrpd	1				
+29		P_+	Always	0		&Phase	1				Continue in next Phase
+30	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+31	Redir	P_set	Always	0		&Phase	88				
+32	ClrErr	P_eread	Always	dly1		&Ecode					Clear Error Code from Sim commands if not in sim
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 24 Name: DewrapNEW
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Perform Dewrap if needed                     *
+3		Nop	-								**************************************************
+4		P_conv	False	Done	CanReq	1	DestB	&Local1			This call will fill Local 1 - 4
+5		P_set	-			&Cntr	0				   Local1 = predewrap sequence check point(Not Used)
+6		Nop	-								   Local2 = needs dewrap (T/F)
+7		Nop	-								   Local3 = Post dewrap sequence check point(Not Used)
+8		Nop	-								   Local4 = Loop point(Not Used)
+9		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+10		P_==	False	Dewrap		Local2	0				
+11		P_set	-			&Param2	0				
+12		Scall	Always	Done		110					Update the host, no dewrap
+13	Dewrap	P_set	-			&Param2	1				
+14		Scall	-			110					Update host that moving to dewrap
+15	Retry	QClust	True	2nd		147					Query first cluster to see if vehicle present
+16		P_set	Always	Conv		&Local4	1				Set Local4 to first cluster
+17		Nop	-								
+18	2nd	QClust	True	3rd		148					Query second cluster to see if free
+19		P_set	Always	Conv		&Local4	2				Set Local4 to second cluster
+20		Nop	-								
+21	3rd	QClust	True	Dly		146					Query third cluster to see if free
+22		P_set	Always	Conv		&Local4	3				Set Local4 to third cluster
+23		Nop	-								
+24	Dly	Sdelay	Always	Retry		10					Delay 5 seconds and retry, no free stations
+25	Conv	P_conv	False	Retry	Retry	22	Local4	&Local2			
+26	MV_1	CmvSt_C	-		ERRTS1	Local2	2				Local2 has free station number, drop load
+27		P_set	-			&Param1	1				
+28		Scall	-			15					Send Orderinformation via OMPLC to vehicle
+29	TEST1	CmvQ	True	MV_2	ERRTS1	&Source	&ECode	&Result			Check if move is finished.
+30		Sdelay	Always	TEST1		10	$000B				
+31	ERRTS1	Scall	False	0		120					Find out what kind of error.
+32		Nop	Always	MV_1							
+33	MV_2	CmvStn	True	RdPLC	ERRTS2	Local3	10	1			Move to second station and turn on wait IO
+34	ERRTS2	Scall	False	0		120					Find out what kind of error.
+35		Nop	Always	MV_2							
+36	RdPLC	Ctst_A	False	MV_3		$0080					Read PLC bit 7, goes low when button is pressed
+37		SimGet	-			AGVID	1	&Value			Check if AGV is simulated
+38		P_and	False	dly1		&Value	$0002				Skip Simulated steps if not simulated
+39		P_+	-			&Cntr	1				Increment Counter
+40		P_==	False	dly1		Cntr	5				Stop after 5 iteration, simulation only
+41		SimSet	-			AGVID	2	8	$0080		Set PLC 7 to OFF, simulation only
+42	dly1	Sdelay	Always	RdPLC		4					
+43	MV_3	CmvStn	True	M_OK1	ERRTS3	Local4	1				Move back to station and pick load
+44	ERRTS3	Scall	False	CanReq	CanReq	120					Find out what kind of error.
+45		Ctst_A	True	M_OK1	ERRTS3	$0001					Check if Carrier is loaded
+46		Nop	Always	MV_3							
+47	M_OK1	P_set	-			&Param2	2				
+48		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+49		Scall	Always	Done		110					
+50	Done	P_set	-			&Dewrpd	1				
+51		P_+	Always	0		&Phase	1				Continue in next Phase
+52	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+53	Redir	P_set	Always	0		&Phase	88				
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 30 Name: Move to Deliver TS
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Move to deliver station.                       *
+3		Nop	-								**************************************************
+4		P_set	-			&Cntr	0				Set Counter to 0
+5		P_set	-			&Stnid	DestB				
+6		P_==	False	DWChk		Stnid	999				999 indicates EPS group, so special processing needed
+7		P_set	Always	MV_1		&Stnid	325				Move to the pre-EPS Station
+8	DWChk	P_conv	False	MV_1		26	StnID	&Local3			Local3=Dewrap Station, Local4=Wait Point
+9	MvPnt	CmvPnt	-		PntErr	Local4	0				Move to wait point
+10	Rechk	StnCntO	False	MV_1		StnID					If no Orders to station, continue to move
+11		Sdelay	Always	Rechk		4					Delay 5s, then recheck
+12	MV_1	CmvEn_C	-		MVERR1	StnID		$100			Allow pre-allocation of vehicle.
+13		P_set	-			&Param1	1				
+14		Scall	-			15					Send Orderinformation via OMPLC to Vehicle
+15	TEST1	P_==	False	Modfy		Modify	0				Check if modify is sent from host.
+16		Cstatus	-			&Local1	AGVID	&Local2	&Local3		Check vehicle status
+17		P_and	False	MV_2	MV_2	&Local3	$10				If not blocked, continue to next vehicle
+18		CposLay	-			&Value					Store current segment in Value LP
+19		P_conv	False	MV_2	MV_2	24	Value	&Local3			Check if segment is in table
+20		P_==	False	Rdrct		Local4	1				Local 4 tells if it's Rescue Pick only redirect
+21		GP_read	-		MV_2	&Redir	300				Read GP Rescue pick location
+22		P_==	True	MV_2	MV_2	Redir	0				Continue to move if no Rescue Pick
+23		Nop	Always	Rdrct							Otherwise redirect
+24	MV_2	CmvQ	True	Done	MVERR1	&Source	&ECode	&Result			Check if move is finished.
+25		Sdelay	Always	TEST1		4	$000B				Wait 2 sec or until new vehicle information
+26	MVERR1	Scall	False	CanReq		120					Find out what kind of error.
+27		Ctst_A	True	MV_1		$0001					Check if carrier still loaded.
+28	M_OK1	P_conv	False	Done		13	StnID	&Line			
+29	IOChk	P_==	False	Modfy		Modify	0				
+30		Ipoll	True	IOOn	Wait	Line	Unit	ID	10		
+31		P_>	True	Wait		Cntr	0				Skip updating host if all ready done once
+32		P_set	-			&Param1	5040				Set Magic1
+33		P_set	-			&Param2	StnID				Set Magic2
+34		Scall	-			110					Update Host
+35		P_+	Always	Wait		&Cntr	1				Increase counter
+36	IOOn	P_conv	False	IOChk		21	StnID	&Local1			Get Station Full IO
+37		Ipoll	False	Done	Wait	Local1	Local2	Local3	10		Check if Station is full, if so, go to wait
+38		COstat	-		Wait	AGVID	$FFF	$FFF	14		Turn vehicle Yellow
+39	Wait	Sdelay	Always	IOChk		4					
+40		Nop	-								
+41	Done	COstat	-		Wait	AGVID	$FFF	$FFF	0		Turn vehicle back to orignial color
+42		P_+	Always	0		&Phase	1				Continue in Next Phase
+43	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+44	Modfy	COstat	-		Wait	AGVID	$FFF	$FFF	0		Turn vehicle back to orignial color
+45		P_set	Always	0		&Phase	88				Dont update, call Modify
+46	Rdrct	P_set	-			&Param4	10				Set Param4 to current Phase
+47		P_set	Always	0		&Phase	77				Dont update, call Redirect
+48	PntErr	Scall	False	CanReq		120					Find out what kind of error.
+49		Nop	Always	MvPnt							Return to Move Point
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 31 Name: Deliver TS
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Unload at deliver station.                     *
+3		Nop	-								**************************************************
+4		P_set	-			&Cntr	0				Set Counter to 0
+5	MV_1	Ctst_A	False	M_OK1		$0001					If carrier is not loaded, move is already done.
+6		P_set	-			&StnID	DestB				Set Station
+7	IOChk	P_conv	False	Cntnu	Cntnu	13	StnID	&Line			Find Station Ready bit
+8		P_==	False	Mod1		Modify	0				Check if move was modified by host
+9		Ipoll	False	SndRdr	Wait1	Line	Unit	ID	10		Test Station Ready IO
+10		P_conv	False	Cntnu	CanReq	2	StnID	&Line			This gets Line, Unit, ID, and NumIOs
+11		Ibin	-			Line	Unit	&Result	ID	Value	Set Result to Station Sequence number
+12		P_>=	True	Cntnu		Result	Seqnc				Continue if Station Seq >= Order Seq
+13	SndRdr	P_>	True	Wait1		Cntr	0				Skip updating host if all ready done once
+14		P_set	-			&Param1	5040				Set Magic1
+15		P_set	-			&Param2	StnID				Set Magic2
+16		Scall	-			110					Update Host
+17		P_+	-			&Cntr	1				Increase counter
+18	Wait1	Sdelay	Always	IOChk		4	$000B				If Station not ready, host will re-route
+19	Cntnu	P_==	False	MV_1A		StnID	325				325 is the EPS Group
+20		Nop	Always	GrMov							If EPS, go to Group Move
+21		CmvPn_C	-			116	0				Move to Point 116 to avoid Cmvgrp problems
+22		P_set	-			&Param1	1				
+23		Scall	-			15					Send OM_PLC
+24	TEST2	P_==	False	Redir		Modify	0				
+25		CmvQ	True	GrMov	MVERR1	&Source	&ECode	&Result			Check if move is finished.
+26		Sdelay	Always	TEST2		10	$000B				
+27	GrMov	CmvGr_C	-		MVERR1	7	2	$100			
+28		CposStn	Always	MV_1B		&StnID					Get the station the Group Move Picked
+29	MV_1A	P_conv	False	MV_Alo		26	StnID	&Local3			Check if Shipping station
+30		CmvSt_C	Always	MV_1B	MVERR1	StnID	2				Don't allow pre-allocation of vehicle at shipping
+31	MV_Alo	CmvSt_C	-		MVERR1	StnID	2	$100			Allow pre-allocation of vehicle.
+32	MV_1B	P_set	-			&Param1	1				
+33		Scall	-			15					Send OM_PLC
+34	TEST1	CmvQ	True	M_OK1	MVERR1	&Source	&ECode	&Result			Check if move is finished.
+35		P_==	False	Modfy		Modify	0				Check if move was modified by host
+36		P_conv	False	Wait	Wait	13	StnID	&Line			
+37		Ipoll	False	SdRdr1	Wait	Line	Unit	ID	10		
+38		P_conv	False	Wait	Wait	2	StnID	&Line			This gets Line, Unit, ID, and NumIOs
+39		Ibin	-			Line	Unit	&Result	ID	Value	Set Result to Station Sequence number
+40		P_>=	True	Wait		Result	Seqnc				Continue if Station Seq >= Order Seq
+41	SdRdr1	P_>	True	Wait		Cntr	0				Skip updating host if all ready done once
+42		P_set	-			&Param1	5040				Set Magic1
+43		P_set	-			&Param2	StnID				Set Magic2
+44		Scall	-			110					Update Host
+45		P_+	Always	Wait		&Cntr	1				Increase counter
+46	Wait	Sdelay	Always	TEST1		4	$000B				
+47	MVERR1	Ctst_A	True	ERRTS1		$0001					Check if carrier still loaded.
+48		P_eread	Always	M_OK1		&Local1					
+49	ERRTS1	Scall	False	Candrp		120					Find out what kind of error.
+50		Ctst_A	True	MV_1		$0001					Check if carrier still loaded.
+51	M_OK1	P_+	-			&Phase	1				Continue in Next Phase
+52		GP_-	-			2	1				Count down orders active, for TS 152.
+53		Tx_t	Always	0		543	DestB	AGVID	OIndex		
+54	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+55	Redir	P_set	Always	0		&Phase	88				
+56	Candrp	P_set	-			&Param1	4032				
+57		P_set	-			&Param2	StnID				
+58		Scall	Always	CanReq		110					Update Host
+59	Modfy	Cabort	-								
+60	dly	Sdelay	-			4					Delay 2 seconds so Cabort can finish
+61		CmvQ	False	dly	AbErr	&Source	&ECode	&Result			Check if Abort finished
+62	Mod1	P_set	Always	0		&Phase	88				Dont update, call Modify
+63	AbErr	P_eread	Always	dly		&ECode					Read Error Code and delay again
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 50 Name: Cway - Enable/Disable host
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								******************************************************
+2		Nop	-								Enables or disables the host communication
+3		Nop	-								******************************************************
+4		P_valid	False	end		&P1					
+5		GP_set	-			0	P2				Set GP to ordered value.
+6		P_==	True	OFF		P2	1				Status no communication
+7	ON	O_pos	-			100	1	10004	0		set
+8		O_stat	Always	0		100	6	$40	1		
+9		Nop	-								
+10	OFF	O_pos	Always	0		100	0				
+11		Nop	-								
+12	end	Nop	Always	0							
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 60 Name: Show Looping Status
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*****************************
+2		Nop	-								**  Param1 - 0 = Not Looping
+3		Nop	-								**           1 = Looping
+4		Nop	-								*************************
+5		Nop	-								Change the related symbol 
+6		P_==	False	Loop		Param1	0				
+7		COstat	Always	0		AGVID	$FFF	$10			Change to Presentation Group 1
+8	Loop	COstat	Always	0		AGVID	$FFF	$20			
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 61 Name: COStat Test
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		COstat	Always	0		P1	26	$FFF	P2		
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 62 Name: Charger Ethernet
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								This will set GP400 + Charger Number to either
+3		Nop	-								1=Ethernet Enabled or 0=No Ethernet
+4		Nop	-								============
+5		P_set	-			&Local1	400				
+6		P_+	-			&Local1	P1				Add P1 (charger number)
+7		GP_set	Always	0		Local1	P2				Set GP to either 1 or O and end
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 64 Name: Pick from Buffer
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Canc
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								P1=AGVID,P2=Buffer,P3=Drop
+3		Nop	-								Convert Buffer table to get Station
+4		Nop	-								============
+5		P_conv	-			18	DestA	&Local1			Get Pick Location
+6		P_set	-			&DestA	Local1				Make P2 pick station
+7		Sswap	-			1					Change to Pick/Drop
+8	Canc	Nop	Always	0							
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 65 Name: Drop to Buffer
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Canc
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								P1=AGVID,P2=Pick,P3=Buffer
+3		Nop	-								Convert Buffer table to get Station
+4		Nop	-								============
+5		P_conv	-			18	DestB	&Local1			Get Pick Location
+6		P_set	-			&DestB	Local1				Make P2 pick station
+7		Sswap	-			1					Change to Pick/Drop
+8	Canc	Nop	Always	0							
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 66 Name: Cway - Test Pick/Drop
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 CANCEL
+Valid Carrier Types:        I  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Test TS for running carrier to a Station         *
+3		Nop	-								*   P1 = AGVID (or 0
+4		Nop	-								*  P2 = pick station, P3 = drop station
+5		Nop	-								**************************************************
+6		P_==	True	Pick		P1	0				
+7		Calloc	-			P1					ALLOCATE CARRIER (
+8	Pick	CmvStn	True	Drop	PK_ER	P2	1				MOVE CARRIER TO STATION
+9	PK_ER	P_eread	-			&ERROR					ERROR HANDLER
+10		P_==	True	NEWPK		ERROR	$81				
+11		Nop	Always	0	CANCEL						
+12		Nop	-								
+13	NEWPK	P_inval	-			&P2					INVALID OLD STATION
+14	WtPK	Sdelay	-			5					
+15	ChkPK	P_valid	False	WtPK		&P2					WAIT FOR NEW STATION
+16		P_==	True	0		P2	0				IF 0 FINISH
+17		Nop	Always	Pick							
+18		Nop	-								
+19	Drop	CmvStn	True	Done	DP_ER	P3	2				MOVE CARRIER TO STATION
+20	DP_ER	P_eread	-			&ERROR					ERROR HANDLER
+21		P_==	True	NEWDR		ERROR	$81				
+22	DPWT	Ctst_A	False	Done	DP_ER	$0001					
+23		Sdelay	Always	DPWT		10					
+24		Nop	-								
+25	NEWDR	P_inval	-			&P3					INVALID OLD STATION
+26	WtDR	Sdelay	-			5					
+27	CHkDr	P_valid	False	WtDr		&P3					WAIT FOR NEW STATION
+28		P_==	True	0		P3	0				IF 0 FINISH
+29		Nop	Always	Drop							
+30	CANCEL	Crel	-		DOne						
+31	Done	Nop	Always	0							
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 67 Name: CWay - Point Check Test
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		P_inval	-			&AGVID					
+2		P_==	True	Loop		P1	0				
+3		P_set	-			&AGVID	P1				
+4		Calloc	-			AGVID					
+5	Loop	P_valid	True	Move		&P2					
+6		Sdelay	-			10					
+7		P_==	True	Done		P2	0				
+8	Move	CmvPnt	-			P2	0				
+9		Cid	-			&AGVID					
+10		Tx_t	-			5130	P2				
+11		P_inval	Always	Loop		&P2					
+12	Done	P_valid	False	Exit		&AGVID					
+13	Exit	Nop	Always	0							
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 68 Name: CWay - Move to Maintenance
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 Canc
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								==========
+2		Nop	-								Send selected vehicle to
+3		Nop	-								Maintenance Station
+4		Nop	-								==========
+5		P_set	-			&AGVID	P1				Set AGV number
+6		Calloc	-			AGVID					Allocate AGV
+7		Tx_t	-			188	AGVID				Sent to Event Log
+8		CmvStn	-			327	0				Send to Maintenance Station
+9	Wait	Cstatus	-			&Local4	AGVID	&Local3	&Local2		
+10		P_and	True	Exit		&Local2	$0001				
+11		Sdelay	Always	Wait		10					
+12	Exit	Nop	Always	0							Exit
+13	Canc	Crel	Always	0							
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 69 Name: Manual Restart - Fire Alarm
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   FireDoor Monitor
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								This will restart are halted vehicles after
+3		Nop	-								a Fire Alarm has been cleared
+4		Nop	-								============
+5		P_conv	-			10	99	&NumAGV			Set NumAGV to the number of vehicles
+6		P_set	-			&Ctr	1				Set counter to 1
+7	Retest	Ipoll	True	Loop		2	5	1			Keep Testing until False
+8		Sdelay	Always	Retest		2					
+9	Loop	P_conv	-			10	Ctr	&Local1			Set Local1 to AGV number
+10		CRun	-			Local1					Restart AGV
+11		P_+	-			&Ctr	1				Get next AGV
+12		P_>	False	Loop		Ctr	NumAGV				Test if current AGV > NumAGV
+13		Tx_t	-			5173					Log event
+14		Nop	Always	0							end
+
+
+External parameters from Parameter Area named : FireDoor Monitor
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6		Trigger	0	0	Yes	No	Yes	No	
+7		Trigger	0	0	Yes	No	Yes	No	
+8		Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13		Trigger	0	0	Yes	No	Yes	No	
+14		Trigger	0	0	Yes	No	Yes	No	
+15	Error	Trigger	0	0	Yes	No	Yes	No	
+16		Trigger	0	0	Yes	No	Yes	No	
+17		Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	AckSeg	Trigger	0	0	Yes	No	Yes	No	
+20	AckPnt	Trigger	0	0	Yes	No	Yes	No	
+21	CurSeg	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25		Trigger	0	0	Yes	No	Yes	No	
+26		Trigger	0	0	Yes	No	Yes	No	
+27	Rechk	Trigger	0	0	Yes	No	Yes	No	
+28	CurSt	Trigger	0	0	Yes	No	Yes	No	
+29		Trigger	0	0	Yes	No	Yes	No	
+30		Trigger	0	0	Yes	No	Yes	No	
+31		Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 72 Name: Set Charge Minutes
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**********************
+2		Nop	-								*  Let the user set the min charge minutes
+3		Nop	-								*  Saved in GP 200 - for use by TS100
+4		Nop	-								*******************************
+5		P_>	True	Error	Error	P1	100				Sanity check the entry
+6		P_>	False	Error	Error	P1	0				
+7		GP_set	-			200	P1				
+8		GP_*	Always	0		200	120				Convert to Ticks(500ms) for use by sdelay in TS100
+9	Error	Tx_t	Always	0		32					Inform user, ignore entry
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 98 Name: Charging Sequence
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   40. Event started order
+Priority:                   None
+Cancel Row:                 Cancl
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								====================
+2		Nop	-								Starts and stops Charging Sequence
+3		Nop	-								Event driven TS
+4		Nop	-								ID1=Connected,ID2=Fault,ID3=InUse,ID4=Enable
+5		Nop	-								ID5=Charger Number
+6		Nop	-								Ethernet State set with TS62
+7		Nop	-								====================
+8		P_set	-			&Line	02				Set Line for IO
+9		P_set	-			&Unit	06				Set Unit for IO
+10		P_set	-			&Aux1	400				Set Aux1 for GP lookup of Ethernet state
+11		P_conv	False	Fail	Fail	19	p2	&ID1			Read Table for entrance or exit segments
+12		P_+	-			&Aux1	ID5				Add Charger Number to get GP number
+13		GP_read	-			&Aux2	Aux1				Read State:No Ethernet=0, Ethernaet Enabled=1
+14		P_==	True	DoIO		Aux2	1				Do IO related code if Ethernet Enabled
+15		P_==	False	SkpOff		ECode	5400				Skip to Charger Word OFF if not 5400
+16		Nop	Always	SkpOn							Otherwise skip to Charger Word ON
+17	DoIO	P_==	False	Stop		ECode	5400				5400 event to start charging
+18		Ipoll	True	Fail	Fail	Line	Unit	ID2	4		End if Faulted
+19		Itrap	False	Fail	Fail	Line	Unit	ID1	1	20	Check if connected
+20		Ron	-			Line	Unit	ID4			Enable charger
+21		Itrap	False	Fail	Fail	Line	Unit	ID3	1	30	Check Charger in Use
+22	SkpOn	Cplcwr	-			U_id	1	20			Write Charger Word to vehicle(p1)
+23		Nop	Always	End							end
+24	Stop	Roff	-			Line	Unit	ID4			Disable Charger
+25	SkpOff	Cplcwr	-			U_id	0	20			Write Charger Word to vehicle(p1)
+26		Nop	Always	End							
+27	Fail	Cplcwr	-			U_id	100	20			Write Charger Error to vehicle(p1)
+28		Tx_t	-			5452					
+29	End	P_eread	-			&Ecode					
+30	Cancl	Nop	Always	0							
+
+
+External parameters from Parameter Area named : 40. Event started order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	Type	Trigger	0	0	Yes	No	Yes	No	
+1	U_Type	Trigger	0	0	Yes	No	Yes	No	
+2	U_Id	Trigger	0	0	Yes	No	Yes	No	
+3	U_Ix	Trigger	0	0	Yes	No	Yes	No	
+4	U_SwId	Trigger	0	0	Yes	No	Yes	No	
+5	Ecode	Trigger	0	0	Yes	No	Yes	No	
+6	Index	Trigger	0	0	Yes	No	Yes	No	
+7	p1	Trigger	0	0	Yes	No	Yes	No	
+8	p2	Trigger	0	0	Yes	No	Yes	No	
+9	p3	Trigger	0	0	Yes	No	Yes	No	
+10	p4	Trigger	0	0	Yes	No	Yes	No	
+11	Line	Trigger	0	0	Yes	No	Yes	No	
+12	Unit	Trigger	0	0	Yes	No	Yes	No	
+13	ID1	Trigger	0	0	Yes	No	Yes	No	
+14	ID2	Trigger	0	0	Yes	No	Yes	No	
+15	ID3	Trigger	0	0	Yes	No	Yes	No	
+16	ID4	Trigger	0	0	Yes	No	Yes	No	
+17	ID5	Trigger	0	0	Yes	No	Yes	No	
+18	STN	Trigger	0	0	Yes	No	Yes	No	
+19	PSTN	Trigger	0	0	Yes	No	Yes	No	
+20	Status	Trigger	0	0	Yes	No	Yes	No	
+21	Count	Trigger	0	0	Yes	No	Yes	No	
+22	Ti	Trigger	0	0	Yes	No	Yes	No	
+23	Tn	Trigger	0	0	Yes	No	Yes	No	
+24	S	Trigger	0	0	Yes	No	Yes	No	
+25	C	Trigger	0	0	Yes	No	Yes	No	
+26	Mag_1	Trigger	0	0	Yes	No	Yes	No	
+27	Mag_2	Trigger	0	0	Yes	No	Yes	No	
+28	Mag_3	Trigger	0	0	Yes	No	Yes	No	
+29	Aux1	Trigger	0	0	Yes	No	Yes	No	
+30	Aux2	Trigger	0	0	Yes	No	Yes	No	
+31	Aux3	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 99 Name: Manual charge carrier
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		P_valid	False	NACK		&p1					**************************************************
+2		P_ack	-								* Start charging manually                        *
+3		Nop	-								**************************************************
+4		Nop	-								
+5		Calloc	-			P1					Allocate carrier.
+6		Sswap	-			100					Jump to charging structure.
+7	NACK	P_nak	Always	0							
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 100 Name: CarCharge order
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CANCEL
+Valid Carrier Types:        I  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* CARCHARGE.                                     *
+3		Nop	-								**************************************************
+4	CHECK	Ctst_O	False	ChkCar		$0001					If carrier is loaded then swap to CARWASH.
+5		Sswap	-			200					
+6	ChkCar	Cid	-		NoCarr	&AGVID					Check if we have vehicle allocated.
+7		Nop	Always	MOVE							
+8	NoCarr	P_eread	-		ERROR	&Local1					
+9		P_valid	False	ERROR	ERROR	&AGVID					
+10		Calloc	True	MvPnt	AllErr	AGVID					
+11	AllErr	P_eread	-		ERROR	&Local1					
+12		Sdelay	Always	NoCarr	ERROR	20					
+13	MvPnt	CmvPnt	-		ERR_W	1407	0				Move to Wait Point
+14	MOVE	CmvGr_C	-		NOFREE	1	8				Otherwise move to charge position (Group Activity 1)
+15		Nop	-								Since a charger is free, remove this from the charger Q
+16	TEST_M	CmvQ	True	M_OK2	ERR_M	&SOURCE	&ECODE				Check if move is finished.
+17		Sdelay	Always	TEST_M		10	$000B				
+18	ERR_M	Scall	False	0		120					Find out what kind of error.
+19		Nop	Always	MOVE							
+20	NOFREE	P_eread	-			&Local1					
+21		P_==	False	ERR_C		Local1	$C6				$C6 indicates all chargers are occupied
+22	GOWAIT	CmvPnt	Always	WAITG	ERR_W	1407	0				Move to Wait Point
+23	ERR_W	Scall	False	0		120					Find out what kind of error.
+24		Nop	Always	MOVE							
+25	WAITG	Sdelay	Always	MOVE		10					
+26	M_OK2	CposStn	-			&Stnid					Get carrier position. (Node)
+27		P_conv	False	ERROR	ERROR	20	StnID	&HomStn			Find the Home Station associated with the Charge Station
+28	Blck	StnBlk	-		BlkErr	HomStn	1				Block the Home Station
+29		COstat	-		CHARGE	AGVID	$FFF	$10	6		Set Vehicle color to Brown
+30		Tx_t	Always	CHARGE	CHARGE	5307	AGVID				Show start Message
+31	ERR_C	Scall	False	0		120					Find out what kind of error.
+32		Nop	Always	MOVE							
+33	CHARGE	GP_==	False	dly		1000	1				GP1000=1 means simulated so change Low Batt bit
+34		Sdelay	-			20					
+35		SimSet	-		ClrErr	AGVID	5	100			Set PLC 4 to OFF, simulation only
+36		GP_read	-			&Local1	200				Read GP200 for charging time
+37	dly	Sdelay	Always	END	ERROR	Local1					Wait for Time set in TS72
+38		Cnpos	True	MOVE							If carrier has been in manual start all over again
+39	END	Tx_t	Always	Cancel		5308	AGVID				Show stop message
+40	Cancel	COstat	-		Unblk	AGVID	$FFF	$10	0		Set Vehicle color back to default
+41	Unblk	StnBlk	-		BlkEr1	HomStn	0				Unblock the Home Station
+42		Nop	Always	0							
+43	BlkErr	P_eread	-			&ECode					Read StnBlk Error Code
+44		P_==	False	ERROR	ERROR	ECode	$C2				Check for $C2
+45		Sdelay	Always	Blck	Blck	2					If $C2, delay 1 second and try again
+46	BlkEr1	P_eread	-			&ECode					Read StnBlk Error Code
+47		P_==	False	ERROR	ERROR	ECode	$C2				Check for $C2
+48		Sdelay	Always	Unblk	Unblk	2					If $C2, delay 1 second and try again
+49	ERROR	P_eread	Always	0		&ECODE					End if unknown error
+50	ClrErr	P_eread	Always	dly		&ECODE					Clear error and proceed to "live" code if not Simulated
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 101 Name: Block Faulted Charger
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 Cncl
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								Input Params
+3		Nop	-								P1 = charge Stn Number
+4		Nop	-								This is called from changing IO so disable first always
+5		Nop	-								============
+6	Resrt	P_conv	False	Exit	Exit	17	P1	&Local1			Local1=Unit, Local2=ID; Local3=Stn #
+7		P_set	-			&Charge	Local3				Save Station # in Charge
+8		StnAccB	-			Charge	1				Disable Station
+9		Tx_t	-			5309	P1				Send Event Log Message
+10	P0ll	Itrap	True	P0ll	P0ll	2	Local1	Local2	0	20	Wait 10 secs for LOW, then recheck.
+11		StnAccB	-			Charge	0				Enable Station once Fault is cleared
+12		Tx_t	-			5310	P1				Send Event Log Message
+13	Exit	Nop	Always	0							End
+14	Cncl	Nop	Always	Resrt							Don't let cancel
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 102 Name: IOCharging
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Charging
+Priority:                   None
+Cancel Row:                 NoCnl
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								====================
+2		Nop	-								Starts and stops Charging Sequence
+3		Nop	-								IO driven TS
+4		Nop	-								ID1=Connected,ID2=Fault,ID3=InUse,ID4=Enable
+5		Nop	-								====================
+6		P_set	-			&Line	02				
+7		P_set	-			&Unit	06				
+8		P_conv	False	Cancl	Cancl	16	P1	&ID1			Read Table for Charger IOs
+9		Ipoll	True	End	End	Line	Unit	ID2	4		Check if Faulted, end if so
+10	Chk	Ipoll	False	Fail	End	Line	Unit	ID1	4		Make sure still Connected, start here if cancelled
+11		Ron	-			Line	Unit	ID4			Enable charger
+12		Nop	-								
+13		Itrap	False	Fail	End	Line	Unit	ID3	1	30	Wait for Charger in Use
+14		Nop	-								Write Charger Word to vehicle(p1)
+15		Tx_t	-			5307	P1				Start Message
+16		Nop	-								
+17	Test	Itrap	False	Test	End	Line	Unit	ID1	0	20	Check if still Connected
+18	Stop	Roff	-			Line	Unit	ID4			Disable Charger once no longer Connected
+19		Nop	-								Write Charger Word to vehicle(p1)
+20		Tx_t	-			5308	P1				Stop Message
+21		Nop	Always	End							
+22	Fail	Nop	-								Write Charger Error to vehicle(p1)
+23		Tx_t	-			5452					Send Failed Message
+24	End	P_eread	-			&Ecode					Read Ecode so ends normally
+25	Cancl	Nop	Always	0							
+26	NoCnl	Nop	Always	Chk							Don't let this be cancelled
+
+
+External parameters from Parameter Area named : Charging
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	ID1	Trigger	0	0	Yes	No	Yes	No	
+4	ID2	Trigger	0	0	Yes	No	Yes	No	
+5	ID3	Trigger	0	0	Yes	No	Yes	No	
+6	ID4	Trigger	0	0	Yes	No	Yes	No	
+7	Local1	Trigger	0	0	Yes	No	Yes	No	
+8	Local2	Trigger	0	0	Yes	No	Yes	No	
+9	Local3	Trigger	0	0	Yes	No	Yes	No	
+10	Local4	Trigger	0	0	Yes	No	Yes	No	
+11	Line	Trigger	0	0	Yes	No	Yes	No	
+12	Unit	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	__LP14	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	__LP18	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	__LP22	Trigger	0	0	Yes	No	Yes	No	
+23	__LP23	Trigger	0	0	Yes	No	Yes	No	
+24	__LP24	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	__LP26	Trigger	0	0	Yes	No	Yes	No	
+27	__LP27	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	Ecode	Trigger	0	0	Yes	No	Yes	No	
+30	TSID	Trigger	0	0	Yes	No	Yes	No	
+31	TSRow	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 110 Name: Update Host
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Send S-message to Host                         *
+3		Nop	-								*   Message includes Param1
+4		Nop	-								*   And Passed Param2 and Param3
+5		Nop	-								**************************************************
+6		Sgetrig	-			&Local1	&Local2				If order triggered by Cway then
+7		P_==	False	SKIP		Local1	3				Use the copy the ordered phase.
+8		P_valid	True	CHECK3		&Param2					
+9		P_set	-			&Param2	0				
+10	CHECK3	P_valid	True	SEND		&Param3					
+11		P_set	-			&Param3	0				
+12	SEND	Tx_s	-			3	1	Param1	Param2	Param3	Send S-message to Host.
+13	Skip	Nop	Always	0							
+14	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+15		Nop	-								
+16		Nop	-								
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 120 Name: Cmv error check TS1
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Find the carrier move error                    *
+3		Nop	-								**************************************************
+4		CmvQ	True	Rep	Eread	&Source	&ECode	&Result			If no error, repeat Cmove.
+5	Eread	P_eread	-			&Error					
+6		P_==	False	WaitS		Error	$85				Error code not stored, wait for new status.
+7		Tx_OKPI	-			SOURCE	ECode	RESULT			Send order KPI custom event to System Statistics
+8		Nop	-								
+9		Nop	-								****************
+10		P_==	False	Src_2		Source	1				* source 1: OM *
+11		Nop	-								****************
+12		P_==	True	No_Rep		ECode	$05				ORDER CANCELED
+13		P_==	True	Redir		ECode	$81				Invalid Station A / Invalid Point A
+14		P_==	True	Redir		ECode	$82				Invalid carrier mask
+15		P_==	True	Redir		ECode	$83				Invalid action station A
+16		P_==	True	Redir		ECode	$84				Don't care orientation defined on station A
+17		P_==	True	Redir		ECode	$85				No station accessible due to the carrier mask
+18		P_==	True	Redir		ECode	$91				Invalid Station C / Invalid Point C
+19		P_==	True	Redir		ECode	$92				Invalid carrier mask
+20		P_==	True	Redir		ECode	$93				Invalid action station C
+21		P_==	True	Redir		ECode	$94				Don't care orientation defined on station C
+22		Tx_t	-			10006	Error	Source	ECode	RESULT	User Event: SOURCE or ECODE undefined or 
+23		Nop	Always	Redir							
+24		Nop	-								
+25		Nop	-								****************
+26	Src_2	P_==	False	Src_3		Source	2				* source 2: CM *
+27		Nop	-								****************
+28		P_==	True	Redir		ECode	$C1				Station is blocked
+29		P_==	True	Redir		ECode	$C2				Can't reach station
+30		P_==	True	WaitM		ECode	$C3				Can't command vehicle (Manual/Semi/Local)
+31		P_==	True	No_Rep		ECode	$C4				Can't access station due to orientation
+32		P_==	True	Redir		ECode	$C5				No station with groupe type exist
+33		P_==	True	Rep		ECode	$C6				all station with the groupe type is occupied
+34		P_==	True	Redir		ECode	$C7				No station with defined action exist
+35		P_==	True	Redir		ECode	$C8				can't reach station,reason could not be detected
+36		P_==	True	WaitQ		ECode	$C9				Previus command not finished
+37		P_==	True	Redir		ECode	$CA				Can't find Entry (probably caused by weight limit)
+38		P_==	True	Redir		ECode	$D1				Can't conv. action code to operation
+39		P_==	True	Rep		ECode	$D2				System has made a warm restart
+40		P_==	True	WaitS		ECode	$D3				Can't get carrier parameters
+41		P_==	True	Redir		ECode	$D4				Can't get station parameters
+42		P_==	True	Rep		ECode	$D5				Retried 5 times without catching carrier position
+43		P_set	-			&Local1	ECode				Set Aux1 to Ecode to mask new error code
+44		P_and	True	Redir		&Local1	$C0				Check if it´s a c code in that case redirect
+45		P_set	-			&Local1	ECode				Set Aux1 to Ecode to mask new error code
+46		P_and	True	Rep		&Local1	$D0				Check if it´s a d code, in that case repeat
+47		Tx_t	-			10006	Error	Source	ECode	RESULT	User Event: SOURCE or ECODE undefined or 
+48		Nop	Always	Cancel							If not cancel
+49		Nop	-								
+50		Nop	-								************************************
+51	Src_3	P_==	False	Src_4		SOURCE	3				* source 3: AGV Driver / VMC500 *
+52		Nop	-								************************************
+53		P_==	True	Rep		ECode	$00				Interface error between CM and the AGVD
+54		P_==	True	Rep		ECode	$05				Carrier is inserted at a new position
+55		P_==	True	No_Rep		ECode	$0B				Cancel done, Operation not OK
+56		P_==	True	WaitM		ECode	$0E				Carrier is in semi-automatic or manual mode
+57		P_==	True	WaitM		ECode	$0F				Carrier is in Local mode
+58		P_==	True	Cancel		ECode	$10				Carrier has an unknown segment
+59		P_==	True	Cancel		ECode	$12				Carrier is unknown
+60		P_==	True	Cancel		ECode	$15				Synchronization problem between CM and the AGVD
+61		P_==	True	Cancel		ECode	$16				Orientation mismatch between carrier and AGVD
+62		P_==	True	WaitQ		ECode	$19				Previous operation not finished
+63		P_==	True	Cancel		ECode	$1A				Exit segment can’t be reached
+64		Tx_t	-			10006	Error	SOURCE	ECode	RESULT	User Event: SOURCE or ECODE undefined or 
+65		Nop	Always	Cancel							default
+66		Nop	-								
+67		Nop	-								***********************
+68	Src_4	P_==	False	Cancel		SOURCE	4				* source 4: Vehicle Controller PLC *
+69		Sindex	-			&Local1					***********************
+70		Tx_t	-			10009	Error	SOURCE	ECode	RESULT	User Event on VMC500 PLC error
+71		Scall	False	Cancel		121					Returns false, then cancel.
+72		P_==	True	Rep		Local1	1				If return is 1, then repeat
+73		P_==	True	Redir		Local1	2				If return is 2, then redirect
+74		P_==	True	WaitM		Local1	3				If return is 3, then wait for manual assistance.
+75		Tx_t	-			10006	Error	SOURCE	ECode	RESULT	User Event: SOURCE or ECODE undefined or 
+76		Nop	Always	Redir							Else ask for a new destination.
+77		Nop	-								
+78		Nop	-								*************************
+79		Nop	-								* Can't continue Cancel *
+80		Nop	-								*************************
+81	Cancel	P_set	Always	No_rep		&PHASE	30				Set cancel request
+82		Nop	-								*******************************
+83		Nop	-								* Need redirect from operator *
+84		Nop	-								*******************************
+85	Redir	Nop	Always	Rep							Unloading?
+86		P_set	Always	No_Rep		&PHASE	88				Set redirect request fetch
+87	Uload	P_set	Always	No_Rep		&PHASE	88				Set redirect request deliver
+88		Nop	-								
+89		Nop	-								*******************************
+90		Nop	-								*   Wait                      *
+91		Nop	-								*******************************
+92	WaitQ	Sdelay	-			10					
+93		CmvQ	True	Rep	Eread	&SOURCE	&ECODE	&RESULT			* Wait until last command ready, then repeat command
+94		Sdelay	Always	WaitQ		10	$000B				
+95		Nop	-								
+96	WaitS	Cstatus	True	Rep	Eread	&Local2	AGVID				* Wait until the vehicle have sent a new status
+97		Sdelay	Always	WaitS		10	$000B				
+98		Nop	-								
+99	WaitM	Nop	-								* Wait while vehicle are in Manual or local mode
+100		Cnpos	True	Rep	Eread						Check if vehcile inserted on new position
+101		Sdelay	Always	WaitM		60	$0001				Wait 30 second or until vehicle inserted on new positio
+102		Nop	-								
+103		Nop	-								
+104		Nop	-								***********************
+105		Nop	-								* Repeat move command *
+106		Nop	-								***********************
+107	Rep	Sdelay	-			10					Wait five second before repeat
+108		Sindex	-			&Local1					
+109		Tx_t	-			10008	Error	SOURCE	ECode	RESULT	True return User Event
+110		P_set	Always	0		&Local1	1				Return true to Carrier move TS = Repeat command
+111		Nop	-								
+112		Nop	-								*****************************
+113		Nop	-								* Don´t repeat move command *
+114		Nop	-								*****************************
+115	No_Rep	Sindex	-			&Local1					
+116		Tx_t	-			10007	Error	SOURCE	ECode	RESULT	False return User Event
+117		P_set	Always	0		&Local1	0				Return false to Carrier move TS = Don't repeat command
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 121 Name: Cmv error check TS2
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Find the PLC error.                            *
+3		Nop	-								**************************************************
+4		Nop	-								
+5		Nop	-								
+6		Nop	-								Check what kind of PLC error.
+7		Nop	-								Send event and S-messages.
+8		P_==	True	WaitM		ECODE	11000				Load operation time out
+9		P_==	True	WaitM		ECODE	11001				No load on pickup position
+10		P_==	True	Cancel		ECODE	11002				Unload position occupied
+11		P_==	True	WaitM		ECODE	11003				Load in wrong place
+12		P_==	True	Cancel		ECODE	11004				LoadDimX too small -error
+13		P_==	True	Cancel		ECODE	11005				LoadDimX measuring error
+14		P_==	True	Cancel		ECODE	11006				Invalid fetch operation code
+15		P_==	True	Cancel		ECODE	11007				Invalid deliv operation code
+16		P_==	True	Cancel		ECODE	11009				LoadOp segment before preLoadOp
+17		P_==	True	Cancel		ECODE	11010				No distance request when expected
+18		P_==	True	Cancel		ECODE	11011				Distance request handshake error
+19		P_==	True	Cancel		ECODE	11012				Wrong load weight
+20		P_==	True	Cancel		ECODE	11013				Wrong fetch height
+21		P_==	True	Cancel		ECODE	11014				Wrong delivery height
+22		P_==	True	Cancel		ECODE	11015				Wrong occupied type
+23		P_==	True	Cancel		ECODE	11016				Load status changed during the lift.
+24		P_==	True	Cancel		ECODE	11018				Stop sensor error
+25		P_==	True	Cancel		ECODE	11019				Invalid operation code
+26		P_==	True	WaitM		ECODE	11020				Load operation time out
+27		P_==	True	Cancel		ECODE	11021				Access occupied fetch
+28		P_==	True	Redir		ECODE	11022				Access occupied deliver
+29		P_==	True	Cancel		ECODE	11025				Wrong load diameter
+30		P_==	True	Cancel		ECODE	11026				Pallet is stuck
+31		Nop	-								
+32		P_set	-			&Local1	ECODE				
+33		P_and	True	WaitM		&Local1	$0001				Half load?, unstable load
+34		P_set	-			&Local1	ECODE				
+35		P_and	True	Cancel		&Local1	$0002				Operation not supported
+36		P_set	-			&Local1	ECODE				
+37		P_and	True	Cancel		&Local1	$0004				Operation Canceled
+38		P_set	-			&Local1	ECODE				
+39		P_and	True	Cancel		&Local1	$0008				Invalid operation code
+40		P_set	-			&Local1	ECODE				
+41		P_and	True	Cancel		&Local1	$0010				AGV is loaded
+42		P_set	-			&Local1	ECODE				
+43		P_and	True	Cancel		&Local1	$0020				Wrong load status in station, is empty
+44		P_set	-			&Local1	ECODE				
+45		P_and	True	Cancel		&Local1	$0040				Wrong load status on vehicle
+46		P_set	-			&Local1	ECODE				
+47		P_and	True	Redir		&Local1	$0080				Wrong load status in station, is full
+48		P_set	-			&Local1	ECODE				
+49		P_and	True	Cancel		&Local1	$0100				AGV_FirstPalletTooHigh
+50		P_set	-			&Local1	ECODE				
+51		P_and	True	Cancel		&Local1	$0200				AGV_NoSecondPallet
+52		P_set	-			&Local1	ECODE				
+53		P_and	True	Cancel		&Local1	$0400				AGV_SecondPalletTooLow
+54		P_set	-			&Local1	ECODE				
+55		P_and	True	Cancel		&Local1	$0800				AGV_PalletOnInitialLift
+56		P_set	-			&Local1	ECODE				
+57		P_and	True	Cancel		&Local1	$1000				AGV_NoPalletOnInitialLift
+58		P_set	-			&Local1	ECODE				
+59		P_and	True	Cancel		&Local1	$2000				
+60		P_set	-			&Local1	ECODE				
+61		P_and	True	Cancel		&Local1	$4000				
+62		Nop	Always	Cancel							
+63	Cancel	P_set	Always	0		&Local1	0				Make false and jump back. ==> Cancel
+64	Repeat	P_set	Always	0		&Local1	1				Make true and jump back. ==> Repeat
+65	Redir	P_set	Always	0		&Local1	2				Make true and jump back. ==> Redirect.
+66	WaitM	P_set	Always	0		&Local1	3				Make true and jump back. ==> Wait for manual handling.
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 122 Name: Network Status
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   40. Event started order
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								=====================
+2		Nop	-								This will change the color of the vehicle
+3		Nop	-								if network communication is lost
+4		Nop	-								======================
+5		P_set	-			&Status	0				Set to 0 for Cancel color
+6		P_==	True	Setclr		ECode	10001				If Event Code 10001, keep at Cancel color
+7		P_set	-			&Status	4				Set color to red
+8	Setclr	COstat	-			p1	$FFF	$FFF	Status		Set to selected color
+9		Nop	Always	0							end
+
+
+External parameters from Parameter Area named : 40. Event started order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	Type	Trigger	0	0	Yes	No	Yes	No	
+1	U_Type	Trigger	0	0	Yes	No	Yes	No	
+2	U_Id	Trigger	0	0	Yes	No	Yes	No	
+3	U_Ix	Trigger	0	0	Yes	No	Yes	No	
+4	U_SwId	Trigger	0	0	Yes	No	Yes	No	
+5	Ecode	Trigger	0	0	Yes	No	Yes	No	
+6	Index	Trigger	0	0	Yes	No	Yes	No	
+7	p1	Trigger	0	0	Yes	No	Yes	No	
+8	p2	Trigger	0	0	Yes	No	Yes	No	
+9	p3	Trigger	0	0	Yes	No	Yes	No	
+10	p4	Trigger	0	0	Yes	No	Yes	No	
+11	Line	Trigger	0	0	Yes	No	Yes	No	
+12	Unit	Trigger	0	0	Yes	No	Yes	No	
+13	ID1	Trigger	0	0	Yes	No	Yes	No	
+14	ID2	Trigger	0	0	Yes	No	Yes	No	
+15	ID3	Trigger	0	0	Yes	No	Yes	No	
+16	ID4	Trigger	0	0	Yes	No	Yes	No	
+17	ID5	Trigger	0	0	Yes	No	Yes	No	
+18	STN	Trigger	0	0	Yes	No	Yes	No	
+19	PSTN	Trigger	0	0	Yes	No	Yes	No	
+20	Status	Trigger	0	0	Yes	No	Yes	No	
+21	Count	Trigger	0	0	Yes	No	Yes	No	
+22	Ti	Trigger	0	0	Yes	No	Yes	No	
+23	Tn	Trigger	0	0	Yes	No	Yes	No	
+24	S	Trigger	0	0	Yes	No	Yes	No	
+25	C	Trigger	0	0	Yes	No	Yes	No	
+26	Mag_1	Trigger	0	0	Yes	No	Yes	No	
+27	Mag_2	Trigger	0	0	Yes	No	Yes	No	
+28	Mag_3	Trigger	0	0	Yes	No	Yes	No	
+29	Aux1	Trigger	0	0	Yes	No	Yes	No	
+30	Aux2	Trigger	0	0	Yes	No	Yes	No	
+31	Aux3	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 199 Name: Manual Car wash order
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Cway 5 Param
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								****************************************************
+2		Nop	-								* Manual CarWash order, started in TS 11           *
+3		Nop	-								****************************************************
+4		Nop	-								
+5		Calloc	-			P1					Allocate carrier
+6		Tx_t	-			546	P1				Send Event to CWay
+7		Sswap	-			200					Jump to carwash structure
+
+
+External parameters from Parameter Area named : Cway 5 Param
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 200 Name: Car Wash
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 ErEnd
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								
+2		Nop	-								**   CarWash                                    **
+3		Nop	-								
+4	Start	Sdelay	-			1					
+5		Sindex	-			&oIndex					
+6		Fgetsm	-			&Local1	&Local2				Check system mode
+7		P_==	True	Start		Local2	1				Wait for Take-off mode to expire.
+8		GP_==	False	no_hst		0	2				If host is active then
+9		Settrig	-			3	1				Set trigger to HOST
+10	no_hst	Cid	False	ErEND		&AGVID					Get Carrier ID
+11		P_set	-			&Param1	3				Set param1 to 3 to indicate omplc read
+12		Scall	False	ErEND		15					
+13	Ikey	P_>	True	Aktive		OIndex	0				Check if active order
+14	Ld_Chk	Ctst_A	True	Loaded		$0001					Check ... Carrier is Load?
+15		Nop	-								
+16	Finish	Tx_t	Always	0		320	AGVID	0	0	0	Send "Carrier Initialize" to Cway
+17		Nop	-								
+18		Nop	-								
+19	Loaded	P_set	-			&Param1	7050				7050 is Carwash event in ATOS
+20		P_set	-			&Param2	AGVID				
+21		Scall	-			110					Update Host
+22		P_set	-			&Param2	1				
+23		Scall	-			15					Write the new drop station to OMPLC
+24		CmvSt_C	-		Wait	326	2				Move AGV to Carwash Area and wait for Unload
+25	Wait	Ctst_A	False	Finish		$0001					Just sit until the AGV is unloaded
+26		Sdelay	Always	Wait		20	$0010				
+27		Nop	-								
+28	ErEnd	Nop	Always	0							
+29		Nop	-								
+30	Aktive	P_>	True	ChkLd		5	Phase				Check Load
+31	PH5	Ctst_A	False	SSwap		$0001					Phase 5 is loading, see if it completed
+32		P_set	Always	SSwap		&Phase	6				
+33	ChkLd	Ctst_A	True	SSwap		$0001					
+34		P_set	-			&Phase	13				
+35	Sswap	Sswap	Always	0		1					Swap to dispather
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	Redir	Trigger	0	0	Yes	No	Yes	No	
+27	HomStn	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 210 Name: KPI event
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   40. Event started order
+Priority:                   None
+Cancel Row:                 None
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1	Tx_KPI	Tx_KPI	Always	0	0	U_Id	ECode	P1	P2	P3	
+
+
+External parameters from Parameter Area named : 40. Event started order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	Type	Trigger	0	0	Yes	No	Yes	No	
+1	U_Type	Trigger	0	0	Yes	No	Yes	No	
+2	U_Id	Trigger	0	0	Yes	No	Yes	No	
+3	U_Ix	Trigger	0	0	Yes	No	Yes	No	
+4	U_SwId	Trigger	0	0	Yes	No	Yes	No	
+5	Ecode	Trigger	0	0	Yes	No	Yes	No	
+6	Index	Trigger	0	0	Yes	No	Yes	No	
+7	p1	Trigger	0	0	Yes	No	Yes	No	
+8	p2	Trigger	0	0	Yes	No	Yes	No	
+9	p3	Trigger	0	0	Yes	No	Yes	No	
+10	p4	Trigger	0	0	Yes	No	Yes	No	
+11	Line	Trigger	0	0	Yes	No	Yes	No	
+12	Unit	Trigger	0	0	Yes	No	Yes	No	
+13	ID1	Trigger	0	0	Yes	No	Yes	No	
+14	ID2	Trigger	0	0	Yes	No	Yes	No	
+15	ID3	Trigger	0	0	Yes	No	Yes	No	
+16	ID4	Trigger	0	0	Yes	No	Yes	No	
+17	ID5	Trigger	0	0	Yes	No	Yes	No	
+18	STN	Trigger	0	0	Yes	No	Yes	No	
+19	PSTN	Trigger	0	0	Yes	No	Yes	No	
+20	Status	Trigger	0	0	Yes	No	Yes	No	
+21	Count	Trigger	0	0	Yes	No	Yes	No	
+22	Ti	Trigger	0	0	Yes	No	Yes	No	
+23	Tn	Trigger	0	0	Yes	No	Yes	No	
+24	S	Trigger	0	0	Yes	No	Yes	No	
+25	C	Trigger	0	0	Yes	No	Yes	No	
+26	Mag_1	Trigger	0	0	Yes	No	Yes	No	
+27	Mag_2	Trigger	0	0	Yes	No	Yes	No	
+28	Mag_3	Trigger	0	0	Yes	No	Yes	No	
+29	Aux1	Trigger	0	0	Yes	No	Yes	No	
+30	Aux2	Trigger	0	0	Yes	No	Yes	No	
+31	Aux3	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 230 Name: SE230
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   40. Event started order
+Priority:                   None
+Cancel Row:                 End
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								============
+2		Nop	-								This TS will change OMPLC 3 to 1
+3		Nop	-								for System Event 230
+4		Nop	-								============
+5		Cplcwr	-		End	U_Id	1	3			Write a 1 to variable 3
+6		Sdelay	-			10					Delay 5 seconds
+7		Cplcwr	-		End	U_Id	0	3			Write a 0 to variable 3
+8		FBBtrig	-								
+9	End	Nop	Always	0							End
+
+
+External parameters from Parameter Area named : 40. Event started order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	Type	Trigger	0	0	Yes	No	Yes	No	
+1	U_Type	Trigger	0	0	Yes	No	Yes	No	
+2	U_Id	Trigger	0	0	Yes	No	Yes	No	
+3	U_Ix	Trigger	0	0	Yes	No	Yes	No	
+4	U_SwId	Trigger	0	0	Yes	No	Yes	No	
+5	Ecode	Trigger	0	0	Yes	No	Yes	No	
+6	Index	Trigger	0	0	Yes	No	Yes	No	
+7	p1	Trigger	0	0	Yes	No	Yes	No	
+8	p2	Trigger	0	0	Yes	No	Yes	No	
+9	p3	Trigger	0	0	Yes	No	Yes	No	
+10	p4	Trigger	0	0	Yes	No	Yes	No	
+11	Line	Trigger	0	0	Yes	No	Yes	No	
+12	Unit	Trigger	0	0	Yes	No	Yes	No	
+13	ID1	Trigger	0	0	Yes	No	Yes	No	
+14	ID2	Trigger	0	0	Yes	No	Yes	No	
+15	ID3	Trigger	0	0	Yes	No	Yes	No	
+16	ID4	Trigger	0	0	Yes	No	Yes	No	
+17	ID5	Trigger	0	0	Yes	No	Yes	No	
+18	STN	Trigger	0	0	Yes	No	Yes	No	
+19	PSTN	Trigger	0	0	Yes	No	Yes	No	
+20	Status	Trigger	0	0	Yes	No	Yes	No	
+21	Count	Trigger	0	0	Yes	No	Yes	No	
+22	Ti	Trigger	0	0	Yes	No	Yes	No	
+23	Tn	Trigger	0	0	Yes	No	Yes	No	
+24	S	Trigger	0	0	Yes	No	Yes	No	
+25	C	Trigger	0	0	Yes	No	Yes	No	
+26	Mag_1	Trigger	0	0	Yes	No	Yes	No	
+27	Mag_2	Trigger	0	0	Yes	No	Yes	No	
+28	Mag_3	Trigger	0	0	Yes	No	Yes	No	
+29	Aux1	Trigger	0	0	Yes	No	Yes	No	
+30	Aux2	Trigger	0	0	Yes	No	Yes	No	
+31	Aux3	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 240 Name: FireDoor Monitoring
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   FireDoor Monitor
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*****************************
+2		Nop	-								**  Monitor for a change in Fire Door IO
+3		Nop	-								*****************************
+4	Start	Sdelay	-			20					
+5		Fgetsm	-			&Local1	&Local2				Check system mode
+6		P_==	True	Start		Local2	1				Wait for Take-off mode to expire.
+7		Nop	-								
+8		Ipoll	False	DFOn		2	5	1			
+9		P_set	Always	Init		&CurSt	0				
+10	DFOn	P_set	-			&CurSt	1				
+11	Init	Scall	-			3					
+12		Nop	-								
+13	Loop	Sdelay	-			4					
+14		Ipoll	False	Chkon		2	5	1			
+15		P_==	True	Loop		CurSt	0				
+16		P_set	-			&CurSt	0				
+17		Nop	Always	Loop							
+18	ChkOn	P_==	True	Loop		CurSt	1				
+19		P_set	-			&CurSt	1				
+20		Scall	Always	Loop		3					// to turn on auto - scall 3
+21		Nop	-								
+22	Cancel	Nop	Always	Loop	Error						Just keep looping
+23	Error	P_eread	Always	Loop		&Error					
+
+
+External parameters from Parameter Area named : FireDoor Monitor
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6		Trigger	0	0	Yes	No	Yes	No	
+7		Trigger	0	0	Yes	No	Yes	No	
+8		Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13		Trigger	0	0	Yes	No	Yes	No	
+14		Trigger	0	0	Yes	No	Yes	No	
+15	Error	Trigger	0	0	Yes	No	Yes	No	
+16		Trigger	0	0	Yes	No	Yes	No	
+17		Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	AckSeg	Trigger	0	0	Yes	No	Yes	No	
+20	AckPnt	Trigger	0	0	Yes	No	Yes	No	
+21	CurSeg	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25		Trigger	0	0	Yes	No	Yes	No	
+26		Trigger	0	0	Yes	No	Yes	No	
+27	Rechk	Trigger	0	0	Yes	No	Yes	No	
+28	CurSt	Trigger	0	0	Yes	No	Yes	No	
+29		Trigger	0	0	Yes	No	Yes	No	
+30		Trigger	0	0	Yes	No	Yes	No	
+31		Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 241 Name: Blocking Monitoring
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   Blocking
+Priority:                   None
+Cancel Row:                 Cancel
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								*********
+2		Nop	-								**  Continual monitoring to manually block 
+3		Nop	-								**  the shared home/charge stations
+4		Nop	-								**********
+5		P_conv	-			10	99	&Local1			Find how many vehicles and store in Local1
+6		P_conv	-			10	Local1	&LstAGV			Store the last AGV number
+7	Start	P_set	-			&Ctr	101				
+8		LayColl	-								
+9		Ipoll	True	Unblk1	Stk2	2	3	17			Check if Stacker 1 is online
+10		StnAccB	-		Stk2	167	1				Block Group Station if offline
+11		StnAccB	Always	Stk2	Stk2	51	1				Block Stacker Station if offline
+12	Unblk1	StnAccB	-		Stk2	167	0				Unblock Group Station if offline
+13		StnAccB	Always	Stk2	Stk2	51	0				Unblock Stacker Station if offline
+14	Stk2	Ipoll	True	Unblk2	Skp	2	3	18			Check if Stacker 2 is online
+15		StnAccB	-		Skp	160	1				Block Group Station if offline
+16		StnAccB	Always	Skp	Skp	36	1				Block Stacker Station if offline
+17	Unblk2	StnAccB	-		Skp	160	0				Unblock Group Station if offline
+18		StnAccB	Always	Skp	Skp	36	0				Unblock Stacker Station if offline
+19	Skp	LayAct	Always	RscuPk	RscuPk						***SKIPPING HOME/CHARGE BLOCKING CODE
+20	Loop	P_conv	False	ChkDn	RscuPk	9	Ctr	&Home			Get the home/charge Pair
+21		StnCntO	True	A	RscuPk	Charge					Check if Charge Station has order to it
+22		Nop	-								
+23		P_set	Always	B		&Enable	0				Make variable 0 to unblock access
+24	A	P_set	-			&Enable	1				Make variable 1 to block access
+25	B	StnAccB	-		ChkDn	Home	Enable				Block/Unblock Home stations
+26		Nop	-								
+27	Next	P_+	Always	Loop		&Ctr	1				
+28		Nop	-								
+29	ChkDn	LayAct	-		Err						***THE BLOCKING DONE IN TS100 NOW
+30	RscuPk	StnCntO	True	SetIO1	Cancel	319					Monitor Rescue Pick Stations
+31		StnCntO	True	SetIO1	Cancel	320					
+32		StnCntO	True	SetIO2	Cancel	321					
+33		Ioff	-		Loop1	7	7	5			If no Rescue, shut off Position IO's
+34		Ioff	-		Loop1	7	7	6			
+35		GP_set	Always	Loop1	Loop1	300	0				Set GP value to 0 if not Rescue Pick
+36	SetIO2	Ion	Always	SetGP	Loop1	7	7	6			Turn on Right Position IO Blocking
+37	SetIO1	Ion	-		Loop1	7	7	5			Turn on Leftt Position IO Blocking
+38	SetGP	GP_set	-		Loop1	300	1				Set GP value to 1 if Rescue Pick
+39	Loop1	Cstate	-		Next1	&Local1	Ctr				Get the state of the vehicle
+40		P_and	True	Next1	Next1	&Local1	$1100				Skip unless carrier is free
+41		Cstatus	-		Err	&Local1	Ctr	&Local2	&Local3		Check vehicle status
+42		P_and	False	Next1	Next1	&Local3	$10				If not blocked, continue to next vehicle
+43		CposLay	-		Err	&Value	&P3	&P4	&P5	Ctr	Store current segment in Value LP
+44		P_conv	False	Next1	Next1	24	Value	&Local3			Check if segment is in table
+45		P_==	False	Clloc	Next1	Local4	1				Local 4 tells if it's Rescue Pick only redirect
+46		GP_read	-		Next1	&Local2	300				Read GP300
+47		P_==	False	Next1	Next1	Local2	1				GP300 is 1 during Rescue, 0 otherwise
+48	Clloc	Sprio	-			8					Set high priority so Calloc gets vehicle
+49		Calloc	-		Cancel	Ctr					Allocate the current carrier
+50	Abrt	Cabort	-		Cancel						Abort command
+51	Chk	Sdelay	-		Abrt	4					Delay to give Abort command time to finish
+52		Carr	False	Chk	Abrt						Check if Abort is done
+53	MV_1	CmvPnt	-		MVErr	Local3	0				Move to Point from Local3
+54		Sprio	-			0					Reset Priority
+55		Crel	Always	Next1	Next1						Release Vehicle back to order
+56	Next1	P_+	-		Wait	&Ctr	1				Increment vehicle counter
+57		P_>	False	Loop1	Wait	Ctr	LstAGV				
+58	Wait	Sdelay	Always	Start		20					
+59	Cancel	Sprio	-			0					Reset Priority
+60		Crel	-								Release Vehicle from this TS
+61		P_eread	Always	Start		&Error					Can't be cancelled
+62	Err	P_eread	Always	Start		&Error					
+63	LayErr	P_eread	Always	ChkDn		&Error					
+64	MVErr	P_eread	-			&Error					
+65		Sdelay	Always	Chk		2					
+
+
+External parameters from Parameter Area named : Blocking
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	LstAGV	Trigger	0	0	Yes	No	Yes	No	
+6	__LP06	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	Value	Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	Result	Trigger	0	0	Yes	No	Yes	No	
+15	__LP15	Trigger	0	0	Yes	No	Yes	No	
+16	__LP16	Trigger	0	0	Yes	No	Yes	No	
+17	__LP17	Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	Enable	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	Error	Trigger	0	0	Yes	No	Yes	No	
+31	__LP31	Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 242 Name: Sequence Display
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   SequenceDisplayParam
+Priority:                   None
+Cancel Row:                 Err
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								****************
+2		Nop	-								*  Display the sequence value
+3		Nop	-								***********
+4	Start	Nop	-								
+5		P_set	-			&Local1	1				Local 1 just indexes through table 11
+6	Loop	P_conv	False	Done		11	Local1	&Line			When false, all entries checked
+7		Ibin	-			Line	Unit	&Result	ID	6	Table 11 contains the IO sets to chech
+8	Pcon	P_conv	-			12	Result	&Symbol			Table 12 converts from value to object (dxf file)
+9		O_stat	-			Local1	Symbol	0	1		Display the object
+10		O_pos	-			Local1	1	GIP			
+11		P_+	Always	Loop		&Local1	1				
+12		Nop	-								
+13	Err	P_eread	-			&Error					
+14	Done	Sdelay	Always	Start		20					Wait 10 secs and check again
+15		Nop	-								
+16		Nop	-								
+17	Repeat	Nop	Always	Start							
+
+
+External parameters from Parameter Area named : SequenceDisplayParam
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	P1	Trigger	0	0	Yes	No	Yes	No	
+1	P2	Trigger	0	0	Yes	No	Yes	No	
+2	P3	Trigger	0	0	Yes	No	Yes	No	
+3	P4	Trigger	0	0	Yes	No	Yes	No	
+4	P5	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6		Trigger	0	0	Yes	No	Yes	No	
+7		Trigger	0	0	Yes	No	Yes	No	
+8		Trigger	0	0	Yes	No	Yes	No	
+9	Local1	Trigger	0	0	Yes	No	Yes	No	
+10	Local2	Trigger	0	0	Yes	No	Yes	No	
+11	Local3	Trigger	0	0	Yes	No	Yes	No	
+12	Local4	Trigger	0	0	Yes	No	Yes	No	
+13		Trigger	0	0	Yes	No	Yes	No	
+14		Trigger	0	0	Yes	No	Yes	No	
+15	Error	Trigger	0	0	Yes	No	Yes	No	
+16		Trigger	0	0	Yes	No	Yes	No	
+17		Trigger	0	0	Yes	No	Yes	No	
+18	AGVID	Trigger	0	0	Yes	No	Yes	No	
+19	Line	Trigger	0	0	Yes	No	Yes	No	
+20	Unit	Trigger	0	0	Yes	No	Yes	No	
+21	ID	Trigger	0	0	Yes	No	Yes	No	
+22	GIP	Trigger	0	0	Yes	No	Yes	No	
+23	Ctr	Trigger	0	0	Yes	No	Yes	No	
+24	NumAGV	Trigger	0	0	Yes	No	Yes	No	
+25	Result	Trigger	0	0	Yes	No	Yes	No	
+26	Home	Trigger	0	0	Yes	No	Yes	No	
+27	Charge	Trigger	0	0	Yes	No	Yes	No	
+28	Symbol	Trigger	0	0	Yes	No	Yes	No	
+29		Trigger	0	0	Yes	No	Yes	No	
+30		Trigger	0	0	Yes	No	Yes	No	
+31		Trigger	0	0	Yes	No	Yes	No	
+
+
+Transport Structure Table No 250 Name: SYSGO TS
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   250. SYSGO
+Priority:                   None
+Cancel Row:                 CANCEL
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* SysGo structure.                               *
+3		Nop	-								**************************************************
+4		Nop	-								
+5		Fsetvam	-			1					Order searches vehicle (default allocation mode).
+6		Nop	-								
+7		P_==	True	COLD		W/C	2				Check if warm or cold restart
+8		P_set	Always	SEND		&Local1	$6001				Send "Warm start".
+9	COLD	Nop	-								
+10		GP_set	-			0	2				Always use Host Communication
+11		P_set	-			&Local2	$6002				Send "Cold start".
+12		Nop	-								Monitor the Firedoor - never ending
+13		Sfork	-			&Local3	241				Monitor Blocking for Charger/Home stations
+14		Sfork	-			&Local3	242				Display current seq values - never ending
+15	Send	Scall	-			110					Send S-message to host
+16		Fiobjc	-								Clear all GIPs
+17		P_==	True	SimChk		W/C	1				If warm start -> finish
+18	CHECK	Fgetsm	-			&Local1	&Local2				Wait for take off to finish
+19		P_==	True	SimChk		Local2	0				
+20		Sdelay	Always	CHECK		2					
+21	SimChk	SimGet	-		ClErr	0	15	&GPVal			
+22		P_==	False	SetSim		GPVal	0				Check if Simulated, 0=no, 1=yes
+23		GP_set	Always	CANCEL		1000	0				Set GP1000 to 0, meaning running in Live Mode
+24	SetSim	GP_set	-			1000	1				Set GP1000 to 1, meaning running in Sim Mode
+25	CANCEL	P_eread	Always	0		&ECODE					
+26	ClErr	P_eread	-			&ECODE					If not Sim, go to Send
+27		GP_set	Always	CANCEL		1000	0				Set GP1000 to 0, meaning running in Live Mode
+
+
+External parameters from Parameter Area named : 250. SYSGO
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	W/C	Trigger	0	0	Yes	No	Yes	No	
+1	__LP01	Trigger	0	0	Yes	No	Yes	No	
+2	__LP02	Trigger	0	0	Yes	No	Yes	No	
+3	__LP03	Trigger	0	0	Yes	No	Yes	No	
+4	__LP04	Trigger	0	0	Yes	No	Yes	No	
+5	__LP05	Trigger	0	0	Yes	No	Yes	No	
+6	child	Trigger	0	0	Yes	No	Yes	No	
+7	__LP07	Trigger	0	0	Yes	No	Yes	No	
+8	__LP08	Trigger	0	0	Yes	No	Yes	No	
+9	__LP09	Trigger	0	0	Yes	No	Yes	No	
+10	__LP10	Trigger	0	0	Yes	No	Yes	No	
+11	__LP11	Trigger	0	0	Yes	No	Yes	No	
+12	__LP12	Trigger	0	0	Yes	No	Yes	No	
+13	__LP13	Trigger	0	0	Yes	No	Yes	No	
+14	__LP14	Trigger	0	0	Yes	No	Yes	No	
+15	Local1	Trigger	0	0	Yes	No	Yes	No	
+16	Local2	Trigger	0	0	Yes	No	Yes	No	
+17	Local3	Trigger	0	0	Yes	No	Yes	No	
+18	__LP18	Trigger	0	0	Yes	No	Yes	No	
+19	__LP19	Trigger	0	0	Yes	No	Yes	No	
+20	__LP20	Trigger	0	0	Yes	No	Yes	No	
+21	__LP21	Trigger	0	0	Yes	No	Yes	No	
+22	__LP22	Trigger	0	0	Yes	No	Yes	No	
+23	__LP23	Trigger	0	0	Yes	No	Yes	No	
+24	__LP24	Trigger	0	0	Yes	No	Yes	No	
+25	__LP25	Trigger	0	0	Yes	No	Yes	No	
+26	GPOff	Trigger	0	0	Yes	No	Yes	No	
+27	GPVal	Trigger	0	0	Yes	No	Yes	No	
+28	__LP28	Trigger	0	0	Yes	No	Yes	No	
+29	__LP29	Trigger	0	0	Yes	No	Yes	No	
+30	ECODE	Trigger	0	0	Yes	No	Yes	No	
+31	RESULT	Trigger	0	0	Yes	No	Yes	No	
+
+

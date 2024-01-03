@@ -1,0 +1,78 @@
+Transport Structure Table No 23 Name: Dewrap
+System: BStone  Unit: V2    Table name: NDC8Demo
+_____________________________________________________________________________________
+
+Connected Parameter Area:   1. Transport order
+Priority:                   None
+Cancel Row:                 CanReq
+Valid Carrier Types:        I  II  III  IV  V  VI  VII  VIII  
+
+Row	Label	Instr	Cond	Dest	Err.	Par 1	Par 2	Par 3	Par 4	Par 5	Remark
+1		Nop	-								**************************************************
+2		Nop	-								* Perform Dewrap if needed                     *
+3		Nop	-								**************************************************
+4		P_conv	False	Done	CanReq	1	DestB	&Local1			This call will fill Local 1 - 4
+5		Nop	-								   Local1 = predewrap sequence check point
+6		Nop	-								   Local2 = needs dewrap (T/F)
+7		Nop	-								   Local3 = Post dewrap sequence check point
+8		Nop	-								   Local4 = Loop point
+9		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+10		P_==	False	Dewrap		Local2	0				
+11		P_set	-			&Param2	0				
+12		Scall	Always	Done		110					Update the host, no dewrap
+13	Dewrap	Scall	False	CanReq	ERRTS1	24					Call Move to Decision Point Structure
+14		P_set	-			&Param2	1				
+15		Scall	-			110					Update host that moving to dewrap
+16	MV_1	CmvGr_C	-		ERRTS1	2	1				Dewrap is Group 2
+17		P_set	-			&Param1	1				
+18		Scall	-			15					Send Orderinformation via OMPLC to vehicle
+19	TEST1	CmvQ	True	M_OK1	ERRTS1	&Source	&ECode	&Result			Check if move is finished.
+20		P_==	False	Redir		Modify	0				Check if redirect is sent from host.
+21		Sdelay	Always	TEST1		10	$000B				
+22	ERRTS1	Scall	False	0		120					Find out what kind of error.
+23		Nop	Always	MV_1							
+24	M_OK1	P_set	-			&Param2	2				
+25		P_set	-			&Param1	5008				Host Update = 5000 + Phase 8
+26		Scall	Always	Done		110					
+27	Done	P_set	-			&Dewrpd	1				
+28		P_+	Always	0		&Phase	1				Continue in next Phase
+29	CanReq	P_set	Always	0		&Phase	30				Set cancel request
+30	Redir	P_set	Always	0		&Phase	88				
+
+
+External parameters from Parameter Area named : 1. Transport order
+ID	Name	Owner	LLine	MDL_id	QEmp	1Shot	QInv	Excl
+0	IKEY	Trigger	0	0	Yes	No	Yes	No	
+1	DestA	Trigger	0	0	Yes	No	Yes	No	
+2	DestB	Trigger	0	0	Yes	No	Yes	No	
+3	Seqnc	Trigger	0	0	Yes	No	Yes	No	
+4	AGVID	Trigger	0	0	Yes	No	Yes	No	
+5	Modify	Trigger	0	0	Yes	No	Yes	No	
+6	Phase	Trigger	0	0	Yes	No	Yes	No	
+7	StnID	Trigger	0	0	Yes	No	Yes	No	
+8	Action	Trigger	0	0	Yes	No	Yes	No	
+9	Dewrpd	Trigger	0	0	Yes	No	Yes	No	
+10	H_Ack	Trigger	0	0	Yes	No	Yes	No	
+11	OIndex	Trigger	0	0	Yes	No	Yes	No	
+12	Local1	Trigger	0	0	Yes	No	Yes	No	
+13	Local2	Trigger	0	0	Yes	No	Yes	No	
+14	Local3	Trigger	0	0	Yes	No	Yes	No	
+15	Local4	Trigger	0	0	Yes	No	Yes	No	
+16	Cntr	Trigger	0	0	Yes	No	Yes	No	
+17	LpPnt	Trigger	0	0	Yes	No	Yes	No	
+18	Line	Trigger	0	0	Yes	No	Yes	No	
+19	Unit	Trigger	0	0	Yes	No	Yes	No	
+20	ID	Trigger	0	0	Yes	No	Yes	No	
+21	Value	Trigger	0	0	Yes	No	Yes	No	
+22	Param1	Trigger	0	0	Yes	No	Yes	No	
+23	Param2	Trigger	0	0	Yes	No	Yes	No	
+24	Param3	Trigger	0	0	Yes	No	Yes	No	
+25	Param4	Trigger	0	0	Yes	No	Yes	No	
+26	_LP26	Trigger	0	0	Yes	No	Yes	No	
+27	_LP27	Trigger	0	0	Yes	No	Yes	No	
+28	Error	Trigger	0	0	Yes	No	Yes	No	
+29	Source	Trigger	0	0	Yes	No	Yes	No	
+30	ECode	Trigger	0	0	Yes	No	Yes	No	
+31	Result	Trigger	0	0	Yes	No	Yes	No	
+
+

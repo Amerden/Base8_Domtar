@@ -1,0 +1,58 @@
+StationId,PointId,Type,SysModes,CarrierTypes,Remark,StationName
+1,1381,Activity,255,255, ,DEP1
+2,1382,Activity,255,255, ,AP46
+3,1383,Activity,255,255, ,AP64
+4,1385,Activity,255,255, ,DR011
+5,1384,Activity,255,255, ,PI012
+6,86,Activity,255,255,#TAB 	T203	203		;DR086, DR087,RR02
+7,87,Activity,255,255,#TAB 	T203	203		;DR086, DR087,RR01
+8,1388,Activity,255,255, ,SVA1
+10,1389,Activity,255,255, ,SR01
+11,1390,Activity,255,255, ,CRP1
+12,1391,Activity,255,255, ,REORIENTATION STATION
+13,1392,Activity,255,255, ,C2P1
+14,1393,Activity,255,255, ,C2S1
+15,1387,Activity,255,255, ,C1S2
+16,1386,Activity,255,255, ,C1P2
+17,1394,Activity,255,255, ,CAP1
+18,1395,Activity,255,255, ,C1C1
+19,1396,Activity,255,255, ,C1C2
+20,1397,Activity,255,255, ,C1C3
+21,1398,Activity,255,255, ,C1C4
+22,1399,Activity,255,255, ,C1C5
+23,1400,Activity,255,255, ,C1C6
+24,166,Activity,255,255, ,C312
+25,165,Activity,255,255, ,C311
+26,164,Activity,255,255, ,C310
+27,163,Activity,255,255, ,C309
+28,162,Activity,255,255, ,C308
+29,161,Activity,255,255, ,C307
+30,160,Activity,255,255, ,C306
+31,159,Activity,255,255, ,C305
+32,158,Activity,255,255, ,C304
+33,157,Activity,255,255, ,C303
+34,156,Activity,255,255, ,C302
+35,155,Activity,255,255, ,C301
+36,1401,Activity,255,255, ,C1C7
+37,1402,Activity,255,255, ,C2C7
+38,1403,Activity,255,255, ,C2C6
+39,1404,Activity,255,255, ,C2C5
+40,1405,Activity,255,255, ,C2C4
+41,1406,Activity,255,255, ,C2C3
+42,1407,Activity,255,255, ,
+43,1408,Activity,255,255, ,C2C1
+44,27,Activity,255,255, ,TT01
+45,117,Activity,255,255, ,TT02
+46,1409,Activity,255,255, ,EMB1
+47,72,Home,255,255, ,Home 1
+48,75,Home,255,255, ,Home 2
+49,89,Home,255,255, ,Home 3
+50,92,Home,255,255, ,Home 4
+51,35,Home,255,255, ,Home 5
+52,31,Home,255,255, ,Home 6
+53,39,Home,255,255, ,Home 7
+54,42,Home,255,255, ,Home 8
+55,47,Home,255,255, ,Home 9
+56,22,Home,255,255, ,Home 10
+57,135,Home,255,255, ,Home 11
+58,139,Home,255,255, ,Home 12
