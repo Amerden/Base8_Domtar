@@ -1,0 +1,39 @@
+;
+;	Configuration file for NT8000.EXE
+;	Edit the file to fit your particular installation.
+;
+;	The default location for the configuration file is
+;	C:\Base8\<SysName>.p8k\<SysName>.cnf
+
+PRODUCT = 41728			; Product number for System Manager
+LICENSEID = {{LICENSEID}}
+
+
+; SQL Database connection
+DB_CONNECT_STRING = {{DB_CONNECT_STRING}}
+DB_KPI_EVENT = 1;   System statistics database
+DB_EVENT_LOG = 1;   Events written in database
+
+
+
+
+COLOUR				; Use colour on the console
+
+; The following sample is used for the disk backup functionality.
+; Remove and modify one of the following examples.
+
+; Disk backup at fastest backup rate.
+; BACKUP_FILE_FREQUENCY = 0
+
+; Disk backup with backup rate of each 10 second.
+; BACKUP_FILE_FREQUENCY = 10000
+
+; Disk backup with backup with an alternate backup file location.
+; BACKUP_FILE_LOCATION  = d:\backup
+
+; Disk backup with backup rate of each 2 second and
+; an alternate backup file location.
+; BACKUP_FILE_FREQUENCY = 2000
+; BACKUP_FILE_LOCATION  = d:\mirror
+
+END
