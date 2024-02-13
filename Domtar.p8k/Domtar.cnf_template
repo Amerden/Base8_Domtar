@@ -10,9 +10,9 @@ LICENSEID = {{LICENSEID}}
 
 
 ; SQL Database connection
-DB_CONNECT_STRING = {{DB_CONNECT_STRING}}
-DB_KPI_EVENT = 1;   System statistics database
-DB_EVENT_LOG = 1;   Events written in database
+;DB_CONNECT_STRING = "Data Source=LAPTOP-CP4SKGPFSQLEXPRESS;Initial Catalog=NDC8;Integrated security=SSPI;"
+;DB_KPI_EVENT = 1;   System statistics database
+;DB_EVENT_LOG = 1;   Events written in database
 
 
 
